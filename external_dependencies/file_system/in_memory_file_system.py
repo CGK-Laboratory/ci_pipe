@@ -49,7 +49,10 @@ class InMemoryFileSystem(FileSystemInterface):
         return f"{directory}/{filename}"
 
     def base_path(self, path):
-        return path.split("/")[0]
+        return path.split("/")[-1]
 
     def split_text(self, path):
-        return path.split("/")
+        if "." in path:
+            idx = path.rfind(".")
+            return (path[:idx], path[idx+1:])
+        return (path, "")
