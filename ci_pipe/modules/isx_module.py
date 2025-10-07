@@ -1,6 +1,7 @@
 from ci_pipe.decorators import step
 
 class ISXModule():
+    # TODO: Consider moving these constants to a different config file
     PREPROCESS_VIDEOS_STEP = "ISX Preprocess Videos"
     PREPROCESS_VIDEOS_SUFIX = "PP"
 
