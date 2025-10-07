@@ -20,7 +20,7 @@ class PersistentFileSystem(FileSystemInterface):
         os.makedirs(path, exist_ok=exist_ok)
 
     def listdir(self, path: str) -> List[str]:
-        return os.listdir(path)
+        return [os.path.join(path, name) for name in os.listdir(path)]
 
     def open(self, path: str, mode: str = 'r', encoding: str = None):
         return open(path, mode, encoding=encoding)

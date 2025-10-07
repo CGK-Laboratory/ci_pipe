@@ -1,0 +1,45 @@
+import unittest
+
+from ci_pipe.pipeline import CIPipe
+from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
+from external_dependencies.isx.in_memory_isx import InMemoryISX
+
+
+class ISXTestCase(unittest.TestCase):
+    def test_01_a_pipeline_without_isx_can_not_run_isx_step(self):
+        # Given
+        pipeline_input = {'videos': ['simulation1.isxd']}
+
+        # When
+        pipeline = CIPipe(pipeline_input, InMemoryFileSystem())
+
+        # Then
+        with self.assertRaises(RuntimeError):
+            pipeline.isx.preprocess_videos()
+
+    def test_02_a_pipeline_with_isx_can_run_isx_preprocess_videos(self):
+        # Given
+        file_system = InMemoryFileSystem()
+        file_system.makedirs('input_dir')
+        file_system.write('input_dir/file1.isxd', '')
+        file_system.write('input_dir/file2.isxd', '')
+        pipeline_input = 'input_dir'
+
+        # When
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline.isx.preprocess_videos()
+
+        # Then
+        output = pipeline.output('videos-isxd')
+        self.assertEqual(len(output), 2)
+        self.assertIn('ids', output[0])
+        self.assertIn('value', output[0])
+        self.assertEqual(output[0]['value'], 'output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd')
+        self.assertEqual(output[1]['value'], 'output/Main Branch - Step 1 - ISX Preprocess Videos/file2-PP.isxd')
+        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd'))
+        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Preprocess Videos/file2-PP.isxd'))
+
+
+
+if __name__ == '__main__':
+    unittest.main()
