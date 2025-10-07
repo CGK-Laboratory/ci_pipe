@@ -6,7 +6,7 @@ import inspect
 import hashlib
 
 class CIPipe:
-    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=None, trace_builder=None, defaults=None):
+    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=None, trace_builder=None, defaults=None, plotter=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
         self._steps = steps or []
@@ -15,6 +15,7 @@ class CIPipe:
         self._outputs_directory = outputs_directory
         self._file_system = file_system or PersistentFileSystem()
         self._trace_builder = trace_builder
+        self._plotter = plotter
 
         self._build_initial_trace()
 
@@ -32,6 +33,12 @@ class CIPipe:
         self._steps.append(new_step)
         self._update_trace_if_trace_builder_provided()
         return self
+    
+    def info(self, step_number):
+        self._plotter.get_step_info(self._trace_builder._load_trace_from_file(), step_number, self._branch_name)
+
+    def trace(self):
+        self._plotter.get_all_trace_from_branch(self._trace_builder._load_trace_from_file(), self._branch_name)
     
     def branch(self, branch_name):
         new_pipe = CIPipe(self._raw_pipeline_inputs.copy(), branch_name=branch_name, steps=self._steps.copy(), file_system=self._file_system, trace_builder=self._trace_builder, defaults=self._defaults.copy())
