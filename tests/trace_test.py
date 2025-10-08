@@ -32,7 +32,8 @@ class TraceTestCase(unittest.TestCase):
                         }
                     ]
                 },
-                "defaults": {}
+                "defaults": {},
+                "outputs_directory": "output"
             }
         }
         self.assertEqual(trace_data, expected_trace)
@@ -62,7 +63,8 @@ class TraceTestCase(unittest.TestCase):
                         }
                     ]
                 },
-                "defaults": {}
+                "defaults": {},
+                "outputs_directory": "output"
             },
             "Main Branch": {
                 "steps": [
@@ -112,7 +114,8 @@ class TraceTestCase(unittest.TestCase):
                 },
                 "defaults": {
                     "factor": 2
-                }
+                },
+                "outputs_directory": "output"
             },
             "Main Branch": {
                 "steps": [
@@ -163,7 +166,8 @@ class TraceTestCase(unittest.TestCase):
                         }
                     ]
                 },
-                "defaults": {}
+                "defaults": {},
+                "outputs_directory": "output"
             },
             "Main Branch": {
                 "steps": [
