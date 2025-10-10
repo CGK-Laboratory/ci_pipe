@@ -1,6 +1,11 @@
 import json
 
+from ci_pipe.errors.defaults_after_step_error import DefaultsAfterStepsError
+from ci_pipe.errors.output_key_not_found_error import OutputKeyNotFoundError
+from ci_pipe.errors.resume_execution_error import ResumeExecutionError
 from ci_pipe.modules.isx_module import ISXModule
+from ci_pipe.result import Result
+from ci_pipe.ci_pipe_record import CIPipeRecord
 from ci_pipe.step import Step
 from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
 
@@ -23,7 +28,6 @@ class CIPipe:
     def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
                  file_system=PersistentFileSystem(), trace_builder=None, defaults=None, plotter=None, isx=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
-        self._raw_pipeline_inputs = inputs
         self._steps = steps or []
         self._defaults = defaults or {}
         self._branch_name = branch_name
@@ -38,13 +42,16 @@ class CIPipe:
 
     # Main protocol
 
-    def output(self, key):
+    def output_result(self, key):
         for step in reversed(self._steps):
             if key in step.step_output():
                 return step.step_output()[key]
         if key in self._pipeline_inputs:
             return self._pipeline_inputs[key]
-        raise KeyError(f"Key '{key}' not found in any step output or pipeline input.")
+        raise OutputKeyNotFoundError(key)
+
+    def output(self, key):
+        return self.output_result(key).to_raw()
 
     def step(self, step_name, step_function, *args, **kwargs):
         if self._trace_builder:
@@ -53,7 +60,12 @@ class CIPipe:
             if self._trace_builder.was_step_already_executed(self._branch_name, step_name):
                 return self
         self._populate_default_params(step_function, kwargs)
-        new_step = Step(step_name, self.output, step_function, args, kwargs)
+
+        def _wrapper(get_result, *a, **kw):
+            out_map = step_function(get_result, *a, **kw)
+            return self._normalize_step_output(out_map)
+
+        new_step = Step(step_name, self.output_result, _wrapper, args, kwargs)
         self._steps.append(new_step)
         self._update_trace_if_trace_builder_provided()
         return self
@@ -65,14 +77,14 @@ class CIPipe:
         self._plotter.get_all_trace_from_branch(self._trace_builder._load_trace_from_file(), self._branch_name)
 
     def branch(self, branch_name):
-        new_pipe = CIPipe(self._raw_pipeline_inputs.copy(), branch_name=branch_name, steps=self._steps.copy(),
+        new_pipe = CIPipe(self._raw_inputs(), branch_name=branch_name, steps=self._steps.copy(),
                           file_system=self._file_system, trace_builder=self._trace_builder,
                           defaults=self._defaults.copy())
         return new_pipe
 
     def set_defaults(self, **defaults):
         if self._steps:
-            raise RuntimeError("Defaults must be set before adding any steps.")
+            raise DefaultsAfterStepsError()
         self._load_defaults(defaults)
         self._build_initial_trace()
         return self
@@ -145,12 +157,12 @@ class CIPipe:
             self._trace_builder.update_trace_with_steps(self._steps, self._branch_name)
 
     def _inputs_with_ids(self, inputs):
-        inputs_with_ids = {}
+        bucket = {}
         for key, values in inputs.items():
             for value in values:
                 entry_id = self._hash_id(key, value)
-                inputs_with_ids.setdefault(key, []).append({'ids': [entry_id], 'value': value})
-        return inputs_with_ids
+                bucket.setdefault(key, []).append(CIPipeRecord([entry_id], value))
+        return {k: Result(vs) for k, vs in bucket.items()}
 
     def _hash_id(self, key, value):
         return hashlib.sha256((key + str(value)).encode()).hexdigest()
@@ -174,9 +186,9 @@ class CIPipe:
         if not self._is_pipeline_attempting_to_resume_execution():
             return
         if not self._is_same_trace_file():
-            raise ValueError(self.RESUME_EXECUTION_ERROR_MESSAGE)
+            raise ResumeExecutionError()
         if not self._is_same_outputs_directory():
-            raise ValueError(self.RESUME_EXECUTION_ERROR_MESSAGE)
+            raise ResumeExecutionError()
 
     def _is_same_trace_file(self) -> bool:
         trace_filename = self._trace_builder.filename()
@@ -209,3 +221,12 @@ class CIPipe:
             self._steps.append(Step(name, self.output, callable_fn, (), params))
 
         self._is_restored_from_trace = True
+
+    def _normalize_step_output(self, out_map):
+        normalized = {}
+        for key, value in out_map.items():
+            normalized[key] = Result.from_raw(value)
+        return normalized
+
+    def _raw_inputs(self):
+        return {k: v.values() for k, v in self._pipeline_inputs.items()}

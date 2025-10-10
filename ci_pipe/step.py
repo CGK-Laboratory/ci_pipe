@@ -12,9 +12,6 @@ class Step:
 
     def name(self):
         return self._step_name
-
-    def output(self):
-        return self._step_outputs
     
     def arguments(self):
         return self._kwargs

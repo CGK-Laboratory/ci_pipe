@@ -8,7 +8,7 @@ class Plotter:
     def __init__(self, console=None):
         self.console = console or Console()
 
-    def get_step_info(self, trace, step_number, branch, show_parameters=True):
+    def get_step_info(self, trace, step_number, branch="Main Branch", show_parameters=True):
         step = self._get_step(trace, step_number, branch)
         if not step:
             return

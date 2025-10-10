@@ -1,5 +1,6 @@
 import json
 
+from ci_pipe.result import Result
 from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
 
 class TraceBuilder:
@@ -9,7 +10,8 @@ class TraceBuilder:
         self._file_system = file_system or PersistentFileSystem()
 
     def build_initial_trace(self, pipeline_inputs, defaults, outputs_directory = None):
-        trace = self._initial_trace(defaults, pipeline_inputs, outputs_directory)
+        inputs_raw = {k: v.to_raw() for k, v in (pipeline_inputs or {}).items()}
+        trace = self._initial_trace(defaults, inputs_raw, outputs_directory)
         self._file_system.write(self._file_name, json.dumps(trace, indent=4))
 
     def update_trace_with_steps(self, steps, branch_name):
@@ -42,20 +44,23 @@ class TraceBuilder:
         for restored_step in self.load_steps_from(branch_name):
             name = restored_step.get("name")
             params = restored_step.get("params") or {}
-            outputs = restored_step.get("outputs") or {}
+            outputs_raw = restored_step.get("outputs") or {}
+            outputs_obj = {k: Result.from_raw(v) for k, v in outputs_raw.items()}
 
             def make_output_fn_from(snapshot):
                 def _fn(_inputs):
                     return snapshot
                 return _fn
 
-            items.append((name, params, make_output_fn_from(outputs)))
+            items.append((name, params, make_output_fn_from(outputs_obj)))
         return items
 
     def _steps_to_json(self, steps):
         steps_json = []
         for idx, step in enumerate(steps, 1):
-            self._append_step_to_trace(steps_json, idx, step, step.step_output())
+            outputs_obj = step.step_output() or {}
+            outputs_json = {k: v.to_raw() for k, v in outputs_obj.items()}
+            self._append_step_to_trace(steps_json, idx, step, outputs_json)
         return steps_json
 
     def _append_step_to_trace(self, steps_json, idx, step, outputs_json):

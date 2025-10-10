@@ -1,13 +1,15 @@
 from ci_pipe.decorators import step
+from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
 
-class ISXModule():
+
+class ISXModule:
     # TODO: Consider moving these constants to a different config file
     PREPROCESS_VIDEOS_STEP = "ISX Preprocess Videos"
     PREPROCESS_VIDEOS_SUFIX = "PP"
 
     def __init__(self, isx, ci_pipe):
         if isx is None:
-            raise RuntimeError("CIPipe 'isx' attribute was not provided. Cannot use an ISX step.")
+            raise ISXBackendNotConfiguredError()
         self._isx = isx
         self._ci_pipe = ci_pipe
 
@@ -26,8 +28,8 @@ class ISXModule():
         output_dir = self._ci_pipe.output_directory_for_next_step(self.PREPROCESS_VIDEOS_STEP)
         self._ci_pipe.create_output_directory_for_next_step(self.PREPROCESS_VIDEOS_STEP)
 
-        for input in inputs('videos-isxd'):
-            input_path = input['value']
+        result = inputs('videos-isxd')
+        for input_ids, input_path in zip(result.ids(), result.values()):
             output_path = self._isx.make_output_file_path(input_path, output_dir, self.PREPROCESS_VIDEOS_SUFIX)
 
             self._isx.preprocess(
@@ -41,7 +43,7 @@ class ISXModule():
             trim_early_frames=trim_early_frames
             )
 
-            output.append({'ids': input['ids'], 'value': output_path})
+            output.append({'ids': input_ids, 'value': output_path})
 
         return {
             'videos-isxd': output
