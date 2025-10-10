@@ -1,5 +1,6 @@
 from ci_pipe.modules.isx_module import ISXModule
 from ci_pipe.step import Step
+from ci_pipe.utils.config_defaults import ConfigDefaults
 from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
 
 import inspect
@@ -8,23 +9,23 @@ import hashlib
 class CIPipe():
 
     @classmethod
-    def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), trace_builder=None, defaults=None, plotter=None, isx=None):
+    def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), trace_builder=None, defaults=None, defaults_path=None, plotter=None, isx=None):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
-        return cls(inputs, branch_name=branch_name, outputs_directory=outputs_directory, steps=steps, file_system=file_system, trace_builder=trace_builder, defaults=defaults, plotter=plotter, isx=isx)
+        return cls(inputs, branch_name=branch_name, outputs_directory=outputs_directory, steps=steps, file_system=file_system, trace_builder=trace_builder, defaults=defaults, defaults_path=defaults_path, plotter=plotter, isx=isx)
 
-    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), trace_builder=None, defaults=None, plotter=None, isx=None):
+    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), trace_builder=None, defaults=None, defaults_path=None, plotter=None, isx=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
         self._steps = steps or []
-        self._defaults = defaults or {}
+        self._defaults = {}
         self._branch_name = branch_name
         self._outputs_directory = outputs_directory
         self._file_system = file_system
         self._trace_builder = trace_builder
         self._plotter = plotter
         self._isx = isx
-
+        self._load_combined_defaults(defaults, defaults_path)
         self._build_initial_trace()
 
     # Main protocol
@@ -51,13 +52,13 @@ class CIPipe():
         self._plotter.get_all_trace_from_branch(self._trace_builder._load_trace_from_file(), self._branch_name)
     
     def branch(self, branch_name):
-        new_pipe = CIPipe(self._raw_pipeline_inputs.copy(), branch_name=branch_name, steps=self._steps.copy(), file_system=self._file_system, trace_builder=self._trace_builder, defaults=self._defaults.copy())
+        new_pipe = CIPipe(self._raw_pipeline_inputs.copy(), branch_name=branch_name, steps=self._steps.copy(), file_system=self._file_system, trace_builder=self._trace_builder, defaults=self._defaults.copy(), plotter=self._plotter, isx=self._isx)
         return new_pipe
     
-    def set_defaults(self, **defaults):
+    def set_defaults(self, defaults_path=None, **defaults):
         if self._steps:
             raise RuntimeError("Defaults must be set before adding any steps.")
-        self._load_defaults(defaults)
+        self._load_combined_defaults(defaults, defaults_path)
         self._build_initial_trace()
         return self
     
@@ -92,6 +93,17 @@ class CIPipe():
     def _load_defaults(self, defaults):
         for defaults_key, defaults_value in defaults.items():
             self._defaults[defaults_key] = defaults_value
+
+    def _load_combined_defaults(self, defaults, defaults_path):
+        loaded_defaults = {}
+        
+        if defaults_path:
+            file_defaults = ConfigDefaults.load_from_file(defaults_path)
+            loaded_defaults.update(file_defaults)
+        if defaults and isinstance(defaults, dict):
+            loaded_defaults.update(defaults)
+
+        self._load_defaults(loaded_defaults)
     
     def _populate_default_params(self, step_function, kwargs):
         for name, param in inspect.signature(step_function).parameters.items():
