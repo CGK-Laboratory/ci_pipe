@@ -5,12 +5,15 @@ from external_dependencies.file_system.in_memory_file_system import InMemoryFile
 
 
 class PipelineTestCase(unittest.TestCase):
+    def setUp(self):
+        self._file_system = InMemoryFileSystem()
+        
     def test_01_a_pipeline_without_steps_returns_input_as_output(self):
         # Given
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
 
         # Then
         output = pipeline.output('numbers')
@@ -24,7 +27,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
 
         # Then
         with self.assertRaises(KeyError):
@@ -35,7 +38,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self._add_one)
 
         # Then
@@ -50,7 +53,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self._add_one)
         pipeline.step("Add another one", self._add_one)
 
@@ -66,7 +69,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self._add_one)
         pipeline.step("Add one with different key", self._add_one_with_different_key)
 
@@ -83,7 +86,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self._add_one)
         pipeline.step("Add one with different key", self._add_one_with_different_key)
         pipeline.step("Sum all", self._sum_all)
@@ -98,7 +101,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self._add_one)
         pipeline.step("Add one with different key", self._add_one_with_different_key)
         pipeline.step("Sum all separately", self._sum_all_separately)
@@ -116,7 +119,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [1, 2, 3]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Scale by 2", self._scale, factor=2)
 
         # Then
@@ -129,7 +132,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [1, 2, 3]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.set_defaults(factor=3)
         pipeline.step("Scale by default factor", self._scale)
 
@@ -143,7 +146,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [1, 2, 3]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.set_defaults(factor=3)
         pipeline.step("Scale by 2", self._scale, factor=2)
 
@@ -157,7 +160,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [1, 2, 3]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Scale by function default factor", self._scale)
 
         # Then
@@ -170,7 +173,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [1]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self._add_one)
         new_pipeline_branch = pipeline.branch("Secondary Branch")
         new_pipeline_branch.step("Add one", self._add_one)
@@ -186,7 +189,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [1]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.set_defaults(factor=2)
         new_pipeline_branch = pipeline.branch("Secondary Branch")
         new_pipeline_branch.step("Scale by default factor", self._scale)
@@ -200,7 +203,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [1]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self._add_one)
         new_pipeline_branch = pipeline.branch("Secondary Branch")
         pipeline.step("Add one", self._add_one)
@@ -216,7 +219,7 @@ class PipelineTestCase(unittest.TestCase):
         pipeline_input = {'numbers': [1]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self._add_one)
 
         # Then
@@ -225,7 +228,7 @@ class PipelineTestCase(unittest.TestCase):
 
     def test_16_a_pipeline_can_build_input_videos_from_directory(self):
         # Given
-        file_system = InMemoryFileSystem()
+        file_system = self._file_system
         file_system.makedirs('input_dir')
         file_system.write('input_dir/file1.isxd', '')
         file_system.write('input_dir/file2.tiff', '')
