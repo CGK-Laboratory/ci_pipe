@@ -12,12 +12,16 @@ class CIPipe:
     RESUME_EXECUTION_ERROR_MESSAGE = "Cannot resume execution without the same trace file and output directory"
 
     @classmethod
-    def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), trace_builder=None, defaults=None, plotter=None, isx=None):
+    def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output', steps=None,
+                                   file_system=PersistentFileSystem(), trace_builder=None, defaults=None, plotter=None,
+                                   isx=None):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
-        return cls(inputs, branch_name=branch_name, outputs_directory=outputs_directory, steps=steps, file_system=file_system, trace_builder=trace_builder, defaults=defaults, plotter=plotter, isx=isx)
+        return cls(inputs, branch_name=branch_name, outputs_directory=outputs_directory, steps=steps,
+                   file_system=file_system, trace_builder=trace_builder, defaults=defaults, plotter=plotter, isx=isx)
 
-    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), trace_builder=None, defaults=None, plotter=None, isx=None):
+    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
+                 file_system=PersistentFileSystem(), trace_builder=None, defaults=None, plotter=None, isx=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
         self._steps = steps or []
@@ -55,11 +59,10 @@ class CIPipe:
         return self
 
     def info(self, step_number):
-            self._plotter.get_step_info(self._trace_builder._load_trace_from_file(), step_number, self._branch_name)
+        self._plotter.get_step_info(self._trace_builder._load_trace_from_file(), step_number, self._branch_name)
 
     def trace(self):
         self._plotter.get_all_trace_from_branch(self._trace_builder._load_trace_from_file(), self._branch_name)
-
 
     def branch(self, branch_name):
         new_pipe = CIPipe(self._raw_pipeline_inputs.copy(), branch_name=branch_name, steps=self._steps.copy(),
@@ -137,7 +140,6 @@ class CIPipe:
             self._outputs_directory
         )
 
-
     def _update_trace_if_trace_builder_provided(self):
         if self._trace_builder:
             self._trace_builder.update_trace_with_steps(self._steps, self._branch_name)
@@ -195,6 +197,10 @@ class CIPipe:
         if self._is_restored_from_trace or not self._trace_builder:
             return
 
+        if self._steps:
+            self._is_restored_from_trace = True
+            return
+
         if not self._is_pipeline_attempting_to_resume_execution():
             return
 
@@ -203,4 +209,3 @@ class CIPipe:
             self._steps.append(Step(name, self.output, callable_fn, (), params))
 
         self._is_restored_from_trace = True
-
