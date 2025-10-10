@@ -1,3 +1,5 @@
+import os
+import tempfile
 import unittest
 
 from ci_pipe.pipeline import CIPipe
@@ -250,7 +252,114 @@ class PipelineTestCase(unittest.TestCase):
         self.assertIn('value', output_tiff[0])
         self.assertEqual(output_tiff[0]['value'], 'input_dir/file2.tiff')
 
-    def test_17_a_pipeline_does_not_execute_step_if_it_was_already_executed_before(self):
+    def test_17_set_defaults_from_file(self):
+        # Given
+        pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
+        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+
+        with tempfile.NamedTemporaryFile('w+', delete=False) as f:
+            f.write('factor: 5\nmultiplier: 2')
+            f.flush()
+            temp_path = f.name
+
+        try:
+            # When
+            pipeline.set_defaults(defaults_path=temp_path)
+
+            # Then
+            self.assertEqual(pipeline._defaults.get('factor'), 5)
+            self.assertEqual(pipeline._defaults.get('multiplier'), 2)
+        finally:
+            os.remove(temp_path)
+
+    def test_18_set_defaults_from_kwargs_only(self):
+        # Given
+        pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
+        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+
+        # When
+        pipeline.set_defaults(factor=3, multiplier=4)
+
+        # Then
+        self.assertEqual(pipeline._defaults.get('factor'), 3)
+        self.assertEqual(pipeline._defaults.get('multiplier'), 4)
+
+    def test_19_set_defaults_combined_file_and_kwargs(self):
+        # Given
+        pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
+        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+
+        with tempfile.NamedTemporaryFile('w+', delete=False) as f:
+            f.write('factor: 5\nmultiplier: 2')
+            f.flush()
+            temp_path = f.name
+
+        try:
+            # When
+            pipeline.set_defaults(factor=10, defaults_path=temp_path)
+
+            # Then
+            self.assertEqual(pipeline._defaults.get('factor'), 10)
+            self.assertEqual(pipeline._defaults.get('multiplier'), 2)
+        finally:
+            os.remove(temp_path)
+
+    def test_22_pass_defaults_directly_in_pipeline_creation_kwargs(self):
+        # Given
+        pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
+
+        # When
+        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem(), defaults={'factor': 3, 'multiplier': 4})
+
+        # Then
+        self.assertEqual(pipeline._defaults.get('factor'), 3)
+        self.assertEqual(pipeline._defaults.get('multiplier'), 4)
+
+    def test_23_pass_defaults_from_file_directly_in_pipeline_creation(self):
+        # Given
+        pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
+
+        with tempfile.NamedTemporaryFile('w+', delete=False) as f:
+            f.write('factor: 5\nmultiplier: 2')
+            f.flush()
+            temp_path = f.name
+
+        try:
+            # When
+            pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem(), defaults_path=temp_path)
+
+            # Then
+            self.assertEqual(pipeline._defaults.get('factor'), 5)
+            self.assertEqual(pipeline._defaults.get('multiplier'), 2)
+        finally:
+            os.remove(temp_path)
+
+    def test_24_pass_combined_defaults_directly_in_pipeline_creation(self):
+        # Given
+        pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
+
+        with tempfile.NamedTemporaryFile('w+', delete=False) as f:
+            f.write('multiplier: 2')
+            f.flush()
+            temp_path = f.name
+
+        try:
+            # When
+            pipeline = CIPipe(
+                pipeline_input,
+                file_system=InMemoryFileSystem(),
+                defaults={'factor': 10},
+                defaults_path=temp_path
+            )
+
+            # Then
+            self.assertEqual(pipeline._defaults.get('factor'), 10)
+            self.assertEqual(pipeline._defaults.get('multiplier'), 2)
+        finally:
+            os.remove(temp_path)
+
+            
+    def test_25_a_pipeline_does_not_execute_step_if_it_was_already_executed_before(self):
         # Given
         pipeline_input = {'numbers': [0]}
         pipeline = CIPipe(pipeline_input, file_system=self._file_system, outputs_directory='output', trace_builder=self._trace_builder)
@@ -269,7 +378,7 @@ class PipelineTestCase(unittest.TestCase):
         self.assertEqual(output[0]['value'], 1)
         self.assertEqual(initial_trace_content, final_trace_content)
 
-    def test_18_a_pipeline_cannot_resume_execution_from_new_pipeline_without_the_same_trace_file_and_output_directory(self):
+    def test_26_a_pipeline_cannot_resume_execution_from_new_pipeline_without_the_same_trace_file_and_output_directory(self):
         # Given
         pipeline_input = {'numbers': [0]}
         initial_output_directory = 'output'
@@ -297,7 +406,7 @@ class PipelineTestCase(unittest.TestCase):
         self.assertEqual(error_message, CIPipe.RESUME_EXECUTION_ERROR_MESSAGE)
 
 
-    def test_19_a_pipeline_can_resume_execution_from_new_pipeline_with_the_same_trace_file_and_output_directory(self):
+    def test_27_a_pipeline_can_resume_execution_from_new_pipeline_with_the_same_trace_file_and_output_directory(self):
         # Given
         pipeline_input = {'numbers': [0]}
         outputs_dir = 'output'
