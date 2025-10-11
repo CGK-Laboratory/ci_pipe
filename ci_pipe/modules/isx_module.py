@@ -17,6 +17,7 @@ class ISXModule():
     def preprocess_videos(
         self,
         inputs,
+        *,
         isx_pp_temporal_downsample_factor=1,
         isx_pp_spatial_downsample_factor=1,
         isx_pp_crop_rect=None,
@@ -52,10 +53,11 @@ class ISXModule():
     def bandpass_filter_videos(
         self,
         inputs,
-        isx_bb_low_cutoff=0.005,
-        isx_bb_high_cutoff=0.5,
-        isx_bb_retain_mean=False,
-        isx_bb_subtract_global_minimum=True
+        *,
+        isx_bp_low_cutoff=0.005,
+        isx_bp_high_cutoff=0.5,
+        isx_bp_retain_mean=False,
+        isx_bp_subtract_global_minimum=True
     ):
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.BANDPASS_FILTER_VIDEOS_STEP)
@@ -67,10 +69,10 @@ class ISXModule():
             self._isx.spatial_filter(
             input_movie_files=[input_path],
             output_movie_files=[output_path],
-            low_cutoff=isx_bb_low_cutoff,
-            high_cutoff=isx_bb_high_cutoff,
-            retain_mean=isx_bb_retain_mean,
-            subtract_global_minimum=isx_bb_subtract_global_minimum
+            low_cutoff=isx_bp_low_cutoff,
+            high_cutoff=isx_bp_high_cutoff,
+            retain_mean=isx_bp_retain_mean,
+            subtract_global_minimum=isx_bp_subtract_global_minimum
             )
 
             output.append({'ids': input['ids'], 'value': output_path})
