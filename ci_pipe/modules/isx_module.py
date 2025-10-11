@@ -155,7 +155,7 @@ class ISXModule():
             'motion-correction-crop-rect': output_crop_rects,
             'motion-correction-mean-images': output_mean_images
         }
-    
+
     @step(NORMALIZE_DFF_VIDEOS_STEP)
     def normalize_dff_videos(
         self,
@@ -221,7 +221,7 @@ class ISXModule():
         return {
             'cellsets-isxd': output
         }
-    
+
     @step(DETECT_EVENTS_IN_CELLS_STEP)
     def detect_events_in_cells(
         self,
@@ -255,7 +255,7 @@ class ISXModule():
         return {
             'events-isxd': output
         }
-    
+
     @step(AUTO_ACCEPT_REJECT_CELLS_STEP)
     def auto_accept_reject_cells(
         self,

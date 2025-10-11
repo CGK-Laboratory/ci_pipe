@@ -64,7 +64,7 @@ class CIPipe:
     def branch(self, branch_name):
         new_pipe = CIPipe(self._raw_pipeline_inputs.copy(), branch_name=branch_name, steps=self._steps.copy(), file_system=self._file_system, trace_builder=self._trace_builder, defaults=self._defaults.copy(), plotter=self._plotter, isx=self._isx)
         return new_pipe
-    
+
     def set_defaults(self, defaults_path=None, **defaults):
         if self._steps:
             raise RuntimeError("Defaults must be set before adding any steps.")
@@ -97,7 +97,7 @@ class CIPipe:
             for key_to_associate_input in key_to_associate_inputs
             if key_input['ids'] == key_to_associate_input['ids']
         ]
-        
+
         return pairs
 
     # Modules
@@ -125,7 +125,7 @@ class CIPipe:
 
     def _load_combined_defaults(self, defaults, defaults_path):
         loaded_defaults = {}
-        
+
         if defaults_path:
             file_defaults = ConfigDefaults.load_from_file(defaults_path, self._file_system)
             loaded_defaults.update(file_defaults)
@@ -133,7 +133,7 @@ class CIPipe:
             loaded_defaults.update(defaults)
 
         self._load_defaults(loaded_defaults)
-    
+
     def _populate_default_params(self, step_function, kwargs):
         for name, param in inspect.signature(step_function).parameters.items():
             if name in kwargs:
