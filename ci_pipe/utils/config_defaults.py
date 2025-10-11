@@ -8,7 +8,7 @@ class ConfigDefaults:
     """
 
     @staticmethod
-    def load_from_file(path):
+    def load_from_file(path, file_system):
         """
         Loads defaults from a configuration file and returns them as a dictionary.
 
@@ -22,13 +22,14 @@ class ConfigDefaults:
             FileNotFoundError: If the file does not exist.
             ValueError: If the file cannot be parsed or does not contain a dictionary.
         """
+        if not file_system.exists(path):
+            raise FileNotFoundError(f"Config file not found: {path}")
+
         try:
-            with open(path, 'r') as f:
-                data = yaml.safe_load(f) or {}
+            content = file_system.read(path)
+            data = yaml.safe_load(content) or {}
             if not isinstance(data, dict):
                 raise ValueError(f"Config file {path} must contain a dictionary at the top level.")
             return data
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Config file not found: {path}")
         except yaml.YAMLError as e:
             raise ValueError(f"Error parsing YAML config: {e}")

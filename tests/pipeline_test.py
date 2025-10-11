@@ -254,28 +254,25 @@ class PipelineTestCase(unittest.TestCase):
 
     def test_17_set_defaults_from_file(self):
         # Given
+        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=fs)
 
-        with tempfile.NamedTemporaryFile('w+', delete=False) as f:
-            f.write('factor: 5\nmultiplier: 2')
-            f.flush()
-            temp_path = f.name
+        config_path = "config.yaml"
+        fs.write(config_path, "factor: 5\nmultiplier: 2")
 
-        try:
-            # When
-            pipeline.set_defaults(defaults_path=temp_path)
+        # When
+        pipeline.set_defaults(defaults_path=config_path)
 
-            # Then
-            self.assertEqual(pipeline._defaults.get('factor'), 5)
-            self.assertEqual(pipeline._defaults.get('multiplier'), 2)
-        finally:
-            os.remove(temp_path)
+        # Then
+        self.assertEqual(pipeline._defaults.get('factor'), 5)
+        self.assertEqual(pipeline._defaults.get('multiplier'), 2)
 
     def test_18_set_defaults_from_kwargs_only(self):
         # Given
+        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=fs)
 
         # When
         pipeline.set_defaults(factor=3, multiplier=4)
@@ -286,30 +283,27 @@ class PipelineTestCase(unittest.TestCase):
 
     def test_19_set_defaults_combined_file_and_kwargs(self):
         # Given
+        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem())
+        pipeline = CIPipe(pipeline_input, file_system=fs)
 
-        with tempfile.NamedTemporaryFile('w+', delete=False) as f:
-            f.write('factor: 5\nmultiplier: 2')
-            f.flush()
-            temp_path = f.name
+        config_path = "config.yaml"
+        fs.write(config_path, "factor: 5\nmultiplier: 2")
 
-        try:
-            # When
-            pipeline.set_defaults(factor=10, defaults_path=temp_path)
+        # When
+        pipeline.set_defaults(factor=10, defaults_path=config_path)
 
-            # Then
-            self.assertEqual(pipeline._defaults.get('factor'), 10)
-            self.assertEqual(pipeline._defaults.get('multiplier'), 2)
-        finally:
-            os.remove(temp_path)
+        # Then
+        self.assertEqual(pipeline._defaults.get('factor'), 10)
+        self.assertEqual(pipeline._defaults.get('multiplier'), 2)
 
     def test_22_pass_defaults_directly_in_pipeline_creation_kwargs(self):
         # Given
+        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem(), defaults={'factor': 3, 'multiplier': 4})
+        pipeline = CIPipe(pipeline_input, file_system=fs, defaults={'factor': 3, 'multiplier': 4})
 
         # Then
         self.assertEqual(pipeline._defaults.get('factor'), 3)
@@ -317,46 +311,33 @@ class PipelineTestCase(unittest.TestCase):
 
     def test_23_pass_defaults_from_file_directly_in_pipeline_creation(self):
         # Given
+        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
 
-        with tempfile.NamedTemporaryFile('w+', delete=False) as f:
-            f.write('factor: 5\nmultiplier: 2')
-            f.flush()
-            temp_path = f.name
+        config_path = "config.yaml"
+        fs.write(config_path, "factor: 5\nmultiplier: 2")
 
-        try:
-            # When
-            pipeline = CIPipe(pipeline_input, file_system=InMemoryFileSystem(), defaults_path=temp_path)
+        # When
+        pipeline = CIPipe(pipeline_input, file_system=fs, defaults_path=config_path)
 
-            # Then
-            self.assertEqual(pipeline._defaults.get('factor'), 5)
-            self.assertEqual(pipeline._defaults.get('multiplier'), 2)
-        finally:
-            os.remove(temp_path)
+        # Then
+        self.assertEqual(pipeline._defaults.get('factor'), 5)
+        self.assertEqual(pipeline._defaults.get('multiplier'), 2)
 
     def test_24_pass_combined_defaults_directly_in_pipeline_creation(self):
         # Given
+        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
 
-        with tempfile.NamedTemporaryFile('w+', delete=False) as f:
-            f.write('multiplier: 2')
-            f.flush()
-            temp_path = f.name
+        config_path = "config.yaml"
+        fs.write(config_path, "multiplier: 2")
 
-        try:
-            # When
-            pipeline = CIPipe(
-                pipeline_input,
-                file_system=InMemoryFileSystem(),
-                defaults={'factor': 10},
-                defaults_path=temp_path
-            )
+        # When
+        pipeline = CIPipe(pipeline_input, file_system=fs, defaults={'factor': 10},defaults_path=config_path)
 
-            # Then
-            self.assertEqual(pipeline._defaults.get('factor'), 10)
-            self.assertEqual(pipeline._defaults.get('multiplier'), 2)
-        finally:
-            os.remove(temp_path)
+        # Then
+        self.assertEqual(pipeline._defaults.get('factor'), 10)
+        self.assertEqual(pipeline._defaults.get('multiplier'), 2)
 
             
     def test_25_a_pipeline_does_not_execute_step_if_it_was_already_executed_before(self):

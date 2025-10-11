@@ -109,7 +109,7 @@ class CIPipe:
         loaded_defaults = {}
         
         if defaults_path:
-            file_defaults = ConfigDefaults.load_from_file(defaults_path)
+            file_defaults = ConfigDefaults.load_from_file(defaults_path, self._file_system)
             loaded_defaults.update(file_defaults)
         if defaults and isinstance(defaults, dict):
             loaded_defaults.update(defaults)
