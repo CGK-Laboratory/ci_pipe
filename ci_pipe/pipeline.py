@@ -84,8 +84,9 @@ class CIPipe:
 
     def create_output_directory_for_next_step(self,
                                               next_step_name):  # TODO: analyze if this is the best place for this logic
-        self._file_system.makedirs(self.output_directory_for_next_step(next_step_name), exist_ok=True)
-        return self
+        output_dir = self.output_directory_for_next_step(next_step_name)
+        self._file_system.makedirs(output_dir, exist_ok=True)
+        return output_dir
 
     # Modules
 

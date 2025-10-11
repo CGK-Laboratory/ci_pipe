@@ -16,6 +16,18 @@ class InMemoryISX():
         for output_file in output_movie_files:
             self._file_system.write(output_file, "")
 
+    def spatial_filter(
+        self,
+        input_movie_files,
+        output_movie_files,
+        low_cutoff = 0.005,
+        high_cutoff = 0.5,
+        retain_mean = False,
+        subtract_global_minimum = True
+    ):
+        for output_file in output_movie_files:
+            self._file_system.write(output_file, "")
+
     def make_output_file_path(
         self,
         in_file,

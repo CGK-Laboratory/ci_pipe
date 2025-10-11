@@ -39,7 +39,27 @@ class ISXTestCase(unittest.TestCase):
         self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd'))
         self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Preprocess Videos/file2-PP.isxd'))
 
+    def test_03_a_pipeline_with_isx_can_run_isx_bandpass_filter_videos(self):
+        # Given
+        file_system = InMemoryFileSystem()
+        file_system.makedirs('input_dir')
+        file_system.write('input_dir/file1.isxd', '')
+        file_system.write('input_dir/file2.isxd', '')
+        pipeline_input = 'input_dir'
 
+        # When
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline.isx.bandpass_filter_videos()
+
+        # Then
+        output = pipeline.output('videos-isxd')
+        self.assertEqual(len(output), 2)
+        self.assertIn('ids', output[0])
+        self.assertIn('value', output[0])
+        self.assertEqual(output[0]['value'], 'output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file1-BP.isxd')
+        self.assertEqual(output[1]['value'], 'output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file2-BP.isxd')
+        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file1-BP.isxd'))
+        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file2-BP.isxd'))
 
 if __name__ == '__main__':
     unittest.main()
