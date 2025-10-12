@@ -208,6 +208,55 @@ class ISXTestCase(unittest.TestCase):
             file_system,
         )
 
+
+    def test_09_a_pipeline_with_isx_can_export_last_videos_to_tiff(self):
+        # Given
+        file_system = InMemoryFileSystem()
+        file_system.makedirs('input_dir')
+        file_system.write('input_dir/file1.isxd', '')
+        file_system.write('input_dir/file2.isxd', '')
+        pipeline_input = 'input_dir'
+
+        # When
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline.isx.preprocess_videos()
+        pipeline.isx.export_movie_to_tiff()
+
+        # Then
+        self._assert_output_files(
+            pipeline,
+            'videos-tiff',
+            [
+                'output/Main Branch - Step 2 - ISX Export movie to TIFF/file1-PP.tiff',
+                'output/Main Branch - Step 2 - ISX Export movie to TIFF/file2-PP.tiff',
+            ],
+            file_system,
+        )
+
+    def test_10_a_pipeline_with_isx_can_export_last_videos_to_nwb(self):
+        # Given
+        file_system = InMemoryFileSystem()
+        file_system.makedirs('input_dir')
+        file_system.write('input_dir/file1.isxd', '')
+        file_system.write('input_dir/file2.isxd', '')
+        pipeline_input = 'input_dir'
+
+        # When
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline.isx.preprocess_videos()
+        pipeline.isx.export_movie_to_nwb()
+
+        # Then
+        self._assert_output_files(
+            pipeline,
+            'videos-nwb',
+            [
+                'output/Main Branch - Step 2 - ISX Export movie to NWB/file1-PP.nwb',
+                'output/Main Branch - Step 2 - ISX Export movie to NWB/file2-PP.nwb',
+            ],
+            file_system,
+        )
+
     def _assert_output_files(self, pipeline, key, expected_paths, file_system):
         output = pipeline.output(key)
         self.assertEqual(len(output), len(expected_paths))
