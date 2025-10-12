@@ -1,11 +1,12 @@
 import io
 import re
 import unittest
+
 from rich.console import Console
+
 from ci_pipe.pipeline import CIPipe
 from ci_pipe.plotter import Plotter
-from ci_pipe.trace_builder import TraceBuilder
-from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
+from tests.ci_pipe_test_case import CIPipeTestCase
 
 
 def strip_ansi(text: str) -> str:
@@ -14,18 +15,12 @@ def strip_ansi(text: str) -> str:
     return ansi_escape.sub('', text)
 
 
-class TestPlotter(unittest.TestCase):
+class TestPlotter(CIPipeTestCase):
 
     def get_output(self, console_output):
         """Gets console output without ANSI codes."""
         console_output.seek(0)
         return strip_ansi(console_output.read())
-
-    def _add_one(self, inputs):
-        return {'numbers': [{'ids': [inputs('numbers')[0]['ids'][0]], 'value': inputs('numbers')[0]['value'] + 1}]}
-    
-    def _multiply_by_two(self, inputs):
-        return {'numbers': [{'ids': x['ids'], 'value': x['value'] * 2} for x in inputs('numbers')]}
 
     def setUp(self):
         # Given
@@ -40,12 +35,6 @@ class TestPlotter(unittest.TestCase):
                 ]
             }
         }
-
-    def get_clean_output(self):
-        """Gets the console output without ANSI codes."""
-        self.output.seek(0)
-        raw = self.output.read()
-        return strip_ansi(raw)
 
     def test_01_get_step_info_existing_step(self):
         # When
@@ -82,20 +71,22 @@ class TestPlotter(unittest.TestCase):
 
     def test_05_info_displays_step_with_tracebuilder(self):
         # Given
-        file_system = InMemoryFileSystem()
-        trace_builder = TraceBuilder(file_name="trace.json", file_system=file_system)
-        console_output = io.StringIO()
-        console = Console(file=console_output, force_terminal=True)
+        console = Console(file=self.output, force_terminal=True)
         plotter = Plotter(console=console)
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(inputs=pipeline_input, trace_builder=trace_builder, file_system=file_system, plotter=plotter)
-        pipeline.step("Add one", self._add_one)
+        pipeline = CIPipe(
+            inputs=pipeline_input,
+            file_system=self._file_system,
+            plotter=plotter,
+            trace_repository=self._trace_repository
+        )
+        pipeline.step("Add one", self.add_one)
         pipeline.info(1)
 
         # Then
-        out = self.get_output(console_output)
+        out = self.get_output(self.output)
         assert "Step 1 - Add one" in out
         assert "Value" in out
         assert "Add one" in out
@@ -104,24 +95,26 @@ class TestPlotter(unittest.TestCase):
 
     def test_06_trace_displays_branch_and_steps_with_tracebuilder(self):
         # Given
-        file_system = InMemoryFileSystem()
-        trace_builder = TraceBuilder(file_name="trace.json", file_system=file_system)
-        console_output = io.StringIO()
-        console = Console(file=console_output, force_terminal=True)
-        plotter = Plotter(console=console)
+        plotter = Plotter(console=self.console)
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(inputs=pipeline_input, trace_builder=trace_builder, file_system=file_system, plotter=plotter)
-        pipeline.step("Add one", self._add_one)
-        pipeline.step("Multiply by two", self._multiply_by_two)
+        pipeline = CIPipe(inputs=pipeline_input, file_system=self._file_system, plotter=plotter, trace_repository=self._trace_repository)
+        pipeline.step("Add one", self.add_one)
+        pipeline.step("Multiply by two", self.multiply_by_two)
         pipeline.trace()
 
         # Then
-        out = self.get_output(console_output)
+        out = self.get_output(self.output)
         assert "Pipeline Trace of branch: Main Branch" in out
         assert "1. Add one" in out
         assert "2. Multiply by two" in out
+
+    def get_clean_output(self):
+        """Gets the console output without ANSI codes."""
+        self.output.seek(0)
+        raw = self.output.read()
+        return strip_ansi(raw)
 
 if __name__ == "__main__":
     unittest.main()
