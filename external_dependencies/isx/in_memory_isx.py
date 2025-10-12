@@ -28,6 +28,36 @@ class InMemoryISX():
         for output_file in output_movie_files:
             self._file_system.write(output_file, "")
 
+    def motion_correct(
+        self,
+        input_movie_files,
+        output_movie_files,
+        max_translation = 20,
+        low_bandpass_cutoff = 0.004,
+        high_bandpass_cutoff = 0.016,
+        roi = None,
+        reference_segment_index = 0,
+        reference_frame_index = 0,
+        reference_file_name = '',
+        global_registration_weight = 1,
+        output_translation_files = None,
+        output_crop_rect_file = None,
+        preserve_input_dimensions = False
+    ):
+        for output_file in output_movie_files:
+            self._file_system.write(output_file, "")
+        for output_file in output_translation_files or []:
+            self._file_system.write(output_file, "")
+        self._file_system.write(output_crop_rect_file, "")
+
+    def project_movie(
+        self,
+        input_movie_files,
+        output_image_file,
+        stat_type = 'mean'
+    ):
+        self._file_system.write(output_image_file, "")
+
     def make_output_file_path(
         self,
         in_file,
@@ -42,7 +72,6 @@ class InMemoryISX():
         new_filename = f"{stem}.{ext}"
         return self._file_system.join(out_dir, new_filename)
 
-
     def make_output_file_paths(
         self,
         in_files,
@@ -55,5 +84,3 @@ class InMemoryISX():
             self.make_output_file_path(in_file, out_dir, suffix, ext)
             for in_file in in_files
         ]
-
-        
