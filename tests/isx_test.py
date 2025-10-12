@@ -183,6 +183,31 @@ class ISXTestCase(unittest.TestCase):
             file_system,
         )
 
+    def test_08_a_pipeline_with_isx_can_run_isx_auto_accept_reject_cells(self):
+        # Given
+        file_system = InMemoryFileSystem()
+        file_system.makedirs('input_dir')
+        file_system.write('input_dir/file1.isxd', '')
+        file_system.write('input_dir/file2.isxd', '')
+        pipeline_input = 'input_dir'
+
+        # When
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline.isx.extract_neurons_pca_ica()
+        pipeline.isx.detect_events_in_cells()
+        pipeline.isx.auto_accept_reject_cells()
+
+        # Then
+        self._assert_output_files(
+            pipeline,
+            'cellsets-isxd',
+            [
+                'output/Main Branch - Step 3 - ISX Auto Accept Reject Cells/file1-PCA-ICA.isxd',
+                'output/Main Branch - Step 3 - ISX Auto Accept Reject Cells/file2-PCA-ICA.isxd',
+            ],
+            file_system,
+        )
+
     def _assert_output_files(self, pipeline, key, expected_paths, file_system):
         output = pipeline.output(key)
         self.assertEqual(len(output), len(expected_paths))

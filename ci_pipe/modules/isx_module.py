@@ -8,6 +8,7 @@ class ISXModule():
     NORMALIZE_DFF_VIDEOS_STEP = "ISX Normalize DFF Videos"
     EXTRACT_NEURONS_PCA_ICA_STEP = "ISX Extract Neurons PCA ICA"
     DETECT_EVENTS_IN_CELLS_STEP = "ISX Detect Events In Cells"
+    AUTO_ACCEPT_REJECT_CELLS_STEP = "ISX Auto Accept Reject Cells"
     PREPROCESS_VIDEOS_SUFIX = "PP"
     BANDPASS_FILTER_VIDEOS_SUFIX = "BP"
     MOTION_CORRECTION_VIDEOS_SUFIX = "MC"
@@ -253,4 +254,30 @@ class ISXModule():
 
         return {
             'events-isxd': output
+        }
+    
+    @step(AUTO_ACCEPT_REJECT_CELLS_STEP)
+    def auto_accept_reject_cells(
+        self,
+        inputs,
+        *,
+        isx_acr_filters=None
+    ):
+        output = []
+        self._ci_pipe.create_output_directory_for_next_step(self.AUTO_ACCEPT_REJECT_CELLS_STEP)
+
+        pairs = self._ci_pipe.associate_keys_by_id('cellsets-isxd', 'events-isxd')
+
+        for ids, cellset_path, event_path in pairs:
+            output_path = self._ci_pipe.copy_file_to_output_directory(cellset_path, self.AUTO_ACCEPT_REJECT_CELLS_STEP)
+
+            self._isx.auto_accept_reject(
+                input_cell_set_files=[output_path],
+                input_event_set_files=[event_path],
+                filters=isx_acr_filters
+            )
+            output.append({'ids': ids, 'value': output_path})
+
+        return {
+            'cellsets-isxd': output
         }

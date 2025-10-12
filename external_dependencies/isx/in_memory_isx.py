@@ -97,6 +97,14 @@ class InMemoryISX():
         for output_file in output_event_set_files:
             self._file_system.write(output_file, "")
 
+    def auto_accept_reject(
+        self,
+        input_cell_set_files,
+        input_event_set_files,
+        filters=None
+    ):
+        pass
+
     def make_output_file_path(
         self,
         in_file,
