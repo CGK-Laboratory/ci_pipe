@@ -30,12 +30,15 @@ class ISXTestCase(unittest.TestCase):
         pipeline.isx.preprocess_videos()
 
         # Then
-        output = pipeline.output('videos-isxd')
-        self.assertEqual(len(output), 2)
-        self.assertEqual(output[0]['value'], 'output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd')
-        self.assertEqual(output[1]['value'], 'output/Main Branch - Step 1 - ISX Preprocess Videos/file2-PP.isxd')
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd'))
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Preprocess Videos/file2-PP.isxd'))
+        self._assert_output_files(
+            pipeline,
+            'videos-isxd',
+            [
+                'output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd',
+                'output/Main Branch - Step 1 - ISX Preprocess Videos/file2-PP.isxd',
+            ],
+            file_system,
+        )
 
     def test_03_a_pipeline_with_isx_can_run_isx_bandpass_filter_videos(self):
         # Given
@@ -50,12 +53,15 @@ class ISXTestCase(unittest.TestCase):
         pipeline.isx.bandpass_filter_videos()
 
         # Then
-        output = pipeline.output('videos-isxd')
-        self.assertEqual(len(output), 2)
-        self.assertEqual(output[0]['value'], 'output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file1-BP.isxd')
-        self.assertEqual(output[1]['value'], 'output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file2-BP.isxd')
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file1-BP.isxd'))
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file2-BP.isxd'))
+        self._assert_output_files(
+            pipeline,
+            'videos-isxd',
+            [
+                'output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file1-BP.isxd',
+                'output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file2-BP.isxd',
+            ],
+            file_system,
+        )
 
     def test_04_a_pipeline_with_isx_can_run_isx_motion_correction_videos(self):
         # Given
@@ -70,30 +76,49 @@ class ISXTestCase(unittest.TestCase):
         pipeline.isx.motion_correction_videos()
 
         # Then
-        output_videos = pipeline.output('videos-isxd')
-        self.assertEqual(len(output_videos), 2)
-        self.assertEqual(output_videos[0]['value'], 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-MC.isxd')
-        self.assertEqual(output_videos[1]['value'], 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-MC.isxd')
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-MC.isxd'))
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-MC.isxd'))
-        output_translations = pipeline.output('motion-correction-translations')
-        self.assertEqual(len(output_translations), 2)
-        self.assertEqual(output_translations[0]['value'], 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-translations.csv')
-        self.assertEqual(output_translations[1]['value'], 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-translations.csv')
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-translations.csv'))
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-translations.csv'))
-        output_crop_rect = pipeline.output('motion-correction-crop-rect')
-        self.assertEqual(len(output_crop_rect), 2)
-        self.assertEqual(output_crop_rect[0]['value'], 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-series-crop-rect.csv')
-        self.assertEqual(output_crop_rect[1]['value'], 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-series-crop-rect.csv')
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-series-crop-rect.csv'))
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-series-crop-rect.csv'))
-        output_mean_images = pipeline.output('motion-correction-mean-images')
-        self.assertEqual(len(output_mean_images), 2)
-        self.assertEqual(output_mean_images[0]['value'], 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-series-mean-image.isxd')
-        self.assertEqual(output_mean_images[1]['value'], 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-series-mean-image.isxd')
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-series-mean-image.isxd'))
-        self.assertTrue(file_system.exists('output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-series-mean-image.isxd'))
+        self._assert_output_files(
+            pipeline,
+            'videos-isxd',
+            [
+                'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-MC.isxd',
+                'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-MC.isxd',
+            ],
+            file_system,
+        )
+        self._assert_output_files(
+            pipeline,
+            'motion-correction-translations',
+            [
+                'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-translations.csv',
+                'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-translations.csv',
+            ],
+            file_system,
+        )
+        self._assert_output_files(
+            pipeline,
+            'motion-correction-crop-rect',
+            [
+                'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-series-crop-rect.csv',
+                'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-series-crop-rect.csv',
+            ],
+            file_system,
+        )
+        self._assert_output_files(
+            pipeline,
+            'motion-correction-mean-images',
+            [
+                'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-series-mean-image.isxd',
+                'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-series-mean-image.isxd',
+            ],
+            file_system,
+        )
+
+    def _assert_output_files(self, pipeline, key, expected_paths, file_system):
+        output = pipeline.output(key)
+        self.assertEqual(len(output), len(expected_paths))
+        for i, expected in enumerate(expected_paths):
+            self.assertEqual(output[i]['value'], expected)
+            self.assertTrue(file_system.exists(expected))
 
 if __name__ == '__main__':
     unittest.main()
