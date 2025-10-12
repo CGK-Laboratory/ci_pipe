@@ -26,7 +26,7 @@ class PersistentFileSystem(FileSystemInterface):
         return open(path, mode, encoding=encoding)
 
     def copy2(self, src: str, dst: str):
-        shutil.copy2(src, dst)
+        return shutil.copy2(src, dst)
 
     def join(self, directory: str, filename: str):
         return os.path.join(directory, filename)

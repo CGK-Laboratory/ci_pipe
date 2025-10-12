@@ -45,7 +45,7 @@ class TraceBuilder:
             outputs = restored_step.get("outputs") or {}
 
             def make_output_fn_from(snapshot):
-                def _fn(_inputs):
+                def _fn(_inputs, *args, **kwargs):
                     return snapshot
                 return _fn
 
