@@ -67,6 +67,36 @@ class InMemoryISX():
         for output_file in output_movie_files:
             self._file_system.write(output_file, "")
 
+    def pca_ica(
+        self,
+        input_movie_files,
+        output_cell_set_files,
+        num_pcs,
+        num_ics = 120,
+        unmix_type = 'spatial',
+        ica_temporal_weight = 0,
+        max_iterations = 100,
+        convergence_threshold = 0.00001,
+        block_size = 1000,
+        auto_estimate_num_ics = False,
+        average_cell_diameter = 13
+    ):
+        for output_file in output_cell_set_files:
+            self._file_system.write(output_file, "")
+
+    def event_detection(
+        self,
+        input_cell_set_files,
+        output_event_set_files,
+        threshold = 5,
+        tau = 0.2,
+        event_time_ref = 'beginning',
+        ignore_negative_transients = True,
+        accepted_cells_only = False
+    ):
+        for output_file in output_event_set_files:
+            self._file_system.write(output_file, "")
+
     def make_output_file_path(
         self,
         in_file,

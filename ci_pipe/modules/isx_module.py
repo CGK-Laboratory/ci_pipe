@@ -6,6 +6,8 @@ class ISXModule():
     BANDPASS_FILTER_VIDEOS_STEP = "ISX Bandpass Filter Videos"
     MOTION_CORRECTION_VIDEOS_STEP = "ISX Motion Correction Videos"
     NORMALIZE_DFF_VIDEOS_STEP = "ISX Normalize DFF Videos"
+    EXTRACT_NEURONS_PCA_ICA_STEP = "ISX Extract Neurons PCA ICA"
+    DETECT_EVENTS_IN_CELLS_STEP = "ISX Detect Events In Cells"
     PREPROCESS_VIDEOS_SUFIX = "PP"
     BANDPASS_FILTER_VIDEOS_SUFIX = "BP"
     MOTION_CORRECTION_VIDEOS_SUFIX = "MC"
@@ -13,12 +15,16 @@ class ISXModule():
     MOTION_CORRECTION_VIDEOS_CROP_RECT_SUFIX = "crop-rect"
     MOTION_CORRECTION_VIDEOS_MEAN_IMAGES_SUFIX = "mean-image"
     NORMALIZE_DFF_VIDEOS_SUFIX = "DFF"
+    EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFIX = "PCA-ICA"
+    DETECT_EVENTS_IN_CELLS_SUFIX = "ED"
 
     def __init__(self, isx, ci_pipe):
         if isx is None:
             raise RuntimeError("CIPipe 'isx' attribute was not provided. Cannot use an ISX step.")
         self._isx = isx
         self._ci_pipe = ci_pipe
+
+    # TODO: Find the best way to remove repetition on these step methods, without losing clarity of what each step does
 
     @step(PREPROCESS_VIDEOS_STEP)
     def preprocess_videos(
@@ -173,4 +179,78 @@ class ISXModule():
 
         return {
             'videos-isxd': output
+        }
+
+    @step(EXTRACT_NEURONS_PCA_ICA_STEP)
+    def extract_neurons_pca_ica(
+        self,
+        inputs,
+        *,
+        isx_pca_ica_num_pcs=180,
+        isx_pca_ica_num_ics=120,
+        isx_pca_ica_unmix_type='spatial',
+        isx_pca_ica_max_iterations=100,
+        isx_pca_ica_convergence_threshold=0.00001,
+        isx_pca_ica_block_size=1000,
+        isx_pca_ica_auto_estimate_num_ics=False,
+        isx_pca_ica_average_cell_diameter=13,
+    ):
+        output = []
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(self.EXTRACT_NEURONS_PCA_ICA_STEP)
+
+        for input in inputs('videos-isxd'):
+            input_path = input['value']
+            output_path = self._isx.make_output_file_path(input_path, output_dir, self.EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFIX)
+
+            self._isx.pca_ica(
+                input_movie_files=[input_path],
+                output_cell_set_files=[output_path],
+                num_pcs=isx_pca_ica_num_pcs,
+                num_ics=isx_pca_ica_num_ics,
+                unmix_type=isx_pca_ica_unmix_type,
+                max_iterations=isx_pca_ica_max_iterations,
+                convergence_threshold=isx_pca_ica_convergence_threshold,
+                block_size=isx_pca_ica_block_size,
+                auto_estimate_num_ics=isx_pca_ica_auto_estimate_num_ics,
+                average_cell_diameter=isx_pca_ica_average_cell_diameter
+            )
+
+            output.append({'ids': input['ids'], 'value': output_path})
+
+        return {
+            'cellsets-isxd': output
+        }
+    
+    @step(DETECT_EVENTS_IN_CELLS_STEP)
+    def detect_events_in_cells(
+        self,
+        inputs,
+        *,
+        isx_ed_threshold=5,
+        isx_ed_tau=0.2,
+        isx_ed_event_time_ref='beginning',
+        isx_ed_ignore_negative_transients=True,
+        isx_ed_accepted_cells_only=False
+    ):
+        output = []
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(self.DETECT_EVENTS_IN_CELLS_STEP)
+
+        for input in inputs('cellsets-isxd'):
+            input_path = input['value']
+            output_path = self._isx.make_output_file_path(input_path, output_dir, self.DETECT_EVENTS_IN_CELLS_SUFIX)
+
+            self._isx.event_detection(
+                input_cell_set_files=[input_path],
+                output_event_set_files=[output_path],
+                threshold=isx_ed_threshold,
+                tau=isx_ed_tau,
+                event_time_ref=isx_ed_event_time_ref,
+                ignore_negative_transients=isx_ed_ignore_negative_transients,
+                accepted_cells_only=isx_ed_accepted_cells_only
+            )
+
+            output.append({'ids': input['ids'], 'value': output_path})
+
+        return {
+            'events-isxd': output
         }
