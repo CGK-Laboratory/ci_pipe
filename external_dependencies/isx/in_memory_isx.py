@@ -58,6 +58,15 @@ class InMemoryISX():
     ):
         self._file_system.write(output_image_file, "")
 
+    def dff(
+        self,
+        input_movie_files,
+        output_movie_files,
+        f0_type = 'mean'
+    ):
+        for output_file in output_movie_files:
+            self._file_system.write(output_file, "")
+
     def make_output_file_path(
         self,
         in_file,

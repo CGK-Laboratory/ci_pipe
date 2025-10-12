@@ -113,6 +113,29 @@ class ISXTestCase(unittest.TestCase):
             file_system,
         )
 
+    def test_05_a_pipeline_with_isx_can_run_isx_normalize_dff_videos(self):
+        # Given
+        file_system = InMemoryFileSystem()
+        file_system.makedirs('input_dir')
+        file_system.write('input_dir/file1.isxd', '')
+        file_system.write('input_dir/file2.isxd', '')
+        pipeline_input = 'input_dir'
+
+        # When
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline.isx.normalize_dff_videos()
+
+        # Then
+        self._assert_output_files(
+            pipeline,
+            'videos-isxd',
+            [
+                'output/Main Branch - Step 1 - ISX Normalize DFF Videos/file1-DFF.isxd',
+                'output/Main Branch - Step 1 - ISX Normalize DFF Videos/file2-DFF.isxd',
+            ],
+            file_system,
+        )
+
     def _assert_output_files(self, pipeline, key, expected_paths, file_system):
         output = pipeline.output(key)
         self.assertEqual(len(output), len(expected_paths))

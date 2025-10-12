@@ -5,12 +5,14 @@ class ISXModule():
     PREPROCESS_VIDEOS_STEP = "ISX Preprocess Videos"
     BANDPASS_FILTER_VIDEOS_STEP = "ISX Bandpass Filter Videos"
     MOTION_CORRECTION_VIDEOS_STEP = "ISX Motion Correction Videos"
+    NORMALIZE_DFF_VIDEOS_STEP = "ISX Normalize DFF Videos"
     PREPROCESS_VIDEOS_SUFIX = "PP"
     BANDPASS_FILTER_VIDEOS_SUFIX = "BP"
     MOTION_CORRECTION_VIDEOS_SUFIX = "MC"
     MOTION_CORRECTION_VIDEOS_TRANSLATIONS_SUFIX = "translations"
     MOTION_CORRECTION_VIDEOS_CROP_RECT_SUFIX = "crop-rect"
     MOTION_CORRECTION_VIDEOS_MEAN_IMAGES_SUFIX = "mean-image"
+    NORMALIZE_DFF_VIDEOS_SUFIX = "DFF"
 
     def __init__(self, isx, ci_pipe):
         if isx is None:
@@ -145,4 +147,30 @@ class ISXModule():
             'motion-correction-translations': output_translations,
             'motion-correction-crop-rect': output_crop_rects,
             'motion-correction-mean-images': output_mean_images
+        }
+    
+    @step(NORMALIZE_DFF_VIDEOS_STEP)
+    def normalize_dff_videos(
+        self,
+        inputs,
+        *,
+        isx_dff_f0_type='mean'
+    ):
+        output = []
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(self.NORMALIZE_DFF_VIDEOS_STEP)
+
+        for input in inputs('videos-isxd'):
+            input_path = input['value']
+            output_path = self._isx.make_output_file_path(input_path, output_dir, self.NORMALIZE_DFF_VIDEOS_SUFIX)
+
+            self._isx.dff(
+                input_movie_files=[input_path],
+                output_movie_files=[output_path],
+                f0_type=isx_dff_f0_type
+            )
+
+            output.append({'ids': input['ids'], 'value': output_path})
+
+        return {
+            'videos-isxd': output
         }
