@@ -39,17 +39,8 @@ class CIPipeTrace:
     def branch_from(self, branch_name) -> Branch:
         return self._branches.get(branch_name)
 
-    def contains_steps_for(self, branch_name) -> bool:
-        steps = self.steps_from(branch_name)
-        return len(steps) > 0
-
-    def output_directory(self) -> str:
-        return self._pipeline.outputs_directory
-
-    def pipeline(self):
-        return self._pipeline
-
     def steps_from(self, branch_name) -> List[Step]:
-        if branch_name not in self._branches:
-            return []
-        return self._branches[branch_name].steps()
+        branch = self.branch_from(branch_name)
+        if branch:
+            return branch.steps()
+        return []

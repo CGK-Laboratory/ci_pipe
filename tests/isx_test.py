@@ -2,7 +2,6 @@ import unittest
 
 from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
 from ci_pipe.pipeline import CIPipe
-from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
 from external_dependencies.isx.in_memory_isx import InMemoryISX
 from tests.ci_pipe_test_case import CIPipeTestCase
 
@@ -21,9 +20,7 @@ class ISXTestCase(CIPipeTestCase):
 
     def test_02_a_pipeline_with_isx_can_run_isx_preprocess_videos(self):
         # Given
-        self._file_system.makedirs('input_dir')
-        self._file_system.write('input_dir/file1.isxd', '')
-        self._file_system.write('input_dir/file2.isxd', '')
+        self._initialize_directory_with_two_videos()
         pipeline_input = 'input_dir'
 
         # When
@@ -43,19 +40,22 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd',
                 'output/Main Branch - Step 1 - ISX Preprocess Videos/file2-PP.isxd',
             ],
-            file_system,
+            self._file_system,
         )
 
     def test_03_a_pipeline_with_isx_can_run_isx_bandpass_filter_videos(self):
         # Given
-        file_system = InMemoryFileSystem()
-        file_system.makedirs('input_dir')
-        file_system.write('input_dir/file1.isxd', '')
-        file_system.write('input_dir/file2.isxd', '')
+        self._initialize_directory_with_two_videos()
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline = CIPipe.with_videos_from_directory(
+            pipeline_input,
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+            trace_repository=self._trace_repository
+        )
+
         pipeline.isx.bandpass_filter_videos()
 
         # Then
@@ -66,19 +66,21 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file1-BP.isxd',
                 'output/Main Branch - Step 1 - ISX Bandpass Filter Videos/file2-BP.isxd',
             ],
-            file_system,
+            self._file_system,
         )
 
     def test_04_a_pipeline_with_isx_can_run_isx_motion_correction_videos(self):
         # Given
-        file_system = InMemoryFileSystem()
-        file_system.makedirs('input_dir')
-        file_system.write('input_dir/file1.isxd', '')
-        file_system.write('input_dir/file2.isxd', '')
+        self._initialize_directory_with_two_videos()
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline = CIPipe.with_videos_from_directory(
+            pipeline_input,
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+            trace_repository=self._trace_repository
+        )
         pipeline.isx.motion_correction_videos()
 
         # Then
@@ -89,7 +91,7 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-MC.isxd',
                 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-MC.isxd',
             ],
-            file_system,
+            self._file_system,
         )
         self._assert_output_files(
             pipeline,
@@ -98,7 +100,7 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-translations.csv',
                 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-translations.csv',
             ],
-            file_system,
+            self._file_system,
         )
         self._assert_output_files(
             pipeline,
@@ -107,7 +109,7 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-series-crop-rect.csv',
                 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-series-crop-rect.csv',
             ],
-            file_system,
+            self._file_system,
         )
         self._assert_output_files(
             pipeline,
@@ -116,19 +118,21 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file1-series-mean-image.isxd',
                 'output/Main Branch - Step 1 - ISX Motion Correction Videos/file2-series-mean-image.isxd',
             ],
-            file_system,
+            self._file_system,
         )
 
     def test_05_a_pipeline_with_isx_can_run_isx_normalize_dff_videos(self):
         # Given
-        file_system = InMemoryFileSystem()
-        file_system.makedirs('input_dir')
-        file_system.write('input_dir/file1.isxd', '')
-        file_system.write('input_dir/file2.isxd', '')
+        self._initialize_directory_with_two_videos()
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline = CIPipe.with_videos_from_directory(
+            pipeline_input,
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+            trace_repository=self._trace_repository
+        )
         pipeline.isx.normalize_dff_videos()
 
         # Then
@@ -139,19 +143,21 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 1 - ISX Normalize DFF Videos/file1-DFF.isxd',
                 'output/Main Branch - Step 1 - ISX Normalize DFF Videos/file2-DFF.isxd',
             ],
-            file_system,
+            self._file_system,
         )
 
     def test_06_a_pipeline_with_isx_can_run_isx_extract_neurons_pca_ica(self):
         # Given
-        file_system = InMemoryFileSystem()
-        file_system.makedirs('input_dir')
-        file_system.write('input_dir/file1.isxd', '')
-        file_system.write('input_dir/file2.isxd', '')
+        self._initialize_directory_with_two_videos()
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline = CIPipe.with_videos_from_directory(
+            pipeline_input,
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+            trace_repository=self._trace_repository
+        )
         pipeline.isx.extract_neurons_pca_ica()
 
         # Then
@@ -162,19 +168,21 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 1 - ISX Extract Neurons PCA ICA/file1-PCA-ICA.isxd',
                 'output/Main Branch - Step 1 - ISX Extract Neurons PCA ICA/file2-PCA-ICA.isxd',
             ],
-            file_system,
+            self._file_system,
         )
 
     def test_07_a_pipeline_with_isx_can_run_isx_detect_events_in_cells(self):
         # Given
-        file_system = InMemoryFileSystem()
-        file_system.makedirs('input_dir')
-        file_system.write('input_dir/file1.isxd', '')
-        file_system.write('input_dir/file2.isxd', '')
+        self._initialize_directory_with_two_videos()
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline = CIPipe.with_videos_from_directory(
+            pipeline_input,
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+            trace_repository=self._trace_repository
+        )
         pipeline.isx.extract_neurons_pca_ica()
         pipeline.isx.detect_events_in_cells()
 
@@ -186,19 +194,21 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 2 - ISX Detect Events In Cells/file1-PCA-ICA-ED.isxd',
                 'output/Main Branch - Step 2 - ISX Detect Events In Cells/file2-PCA-ICA-ED.isxd',
             ],
-            file_system,
+            self._file_system,
         )
 
     def test_08_a_pipeline_with_isx_can_run_isx_auto_accept_reject_cells(self):
         # Given
-        file_system = InMemoryFileSystem()
-        file_system.makedirs('input_dir')
-        file_system.write('input_dir/file1.isxd', '')
-        file_system.write('input_dir/file2.isxd', '')
+        self._initialize_directory_with_two_videos()
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline = CIPipe.with_videos_from_directory(
+            pipeline_input,
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+            trace_repository=self._trace_repository
+        )
         pipeline.isx.extract_neurons_pca_ica()
         pipeline.isx.detect_events_in_cells()
         pipeline.isx.auto_accept_reject_cells()
@@ -211,7 +221,7 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 3 - ISX Auto Accept Reject Cells/file1-PCA-ICA.isxd',
                 'output/Main Branch - Step 3 - ISX Auto Accept Reject Cells/file2-PCA-ICA.isxd',
             ],
-            file_system,
+            self._file_system,
         )
 
     def _assert_output_files(self, pipeline, key, expected_paths, file_system):
@@ -220,6 +230,12 @@ class ISXTestCase(CIPipeTestCase):
         for i, expected in enumerate(expected_paths):
             self.assertEqual(output[i]['value'], expected)
             self.assertTrue(file_system.exists(expected))
+
+    def _initialize_directory_with_two_videos(self):
+        self._file_system.makedirs('input_dir')
+        self._file_system.write('input_dir/file1.isxd', '')
+        self._file_system.write('input_dir/file2.isxd', '')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,10 +1,12 @@
+from typing import List
+
 from ci_pipe.step import Step
 
 
 class Branch:
     def __init__(self, name, steps):
         self._name = name
-        self._steps = steps
+        self._steps = list(steps) if steps is not None else []
 
     @classmethod
     def from_dict(cls, name, data):
@@ -14,8 +16,8 @@ class Branch:
     def to_dict(self):
         return {"steps": self._steps}
 
-    def add_steps(self, step: Step):
-        self._steps.append(step)
+    def add_steps(self, steps: List[Step]):
+        self._steps.extend(steps)
 
     def name(self):
         return self._name

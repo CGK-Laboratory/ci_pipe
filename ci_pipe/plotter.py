@@ -1,7 +1,8 @@
 import json
+
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 
 
 class Plotter:
@@ -16,18 +17,18 @@ class Plotter:
         table = self._build_table(step, show_parameters)
         self.console.print(table)
 
-    def _get_step(self, trace, step_number, branch):
+    def _get_step(self, trace, step_number, branch_name):
         try:
-            steps = trace[branch]["steps"]
+            steps = trace.steps_from(branch_name)
         except KeyError:
-            self.console.print(f"[bold red]Branch '{branch}' not found in trace[/bold red]")
+            self.console.print(f"[bold red]Branch '{branch_name}' not found in trace[/bold red]")
             return None
 
         for step in steps:
             if step["index"] == step_number:
                 return step
 
-        self.console.print(f"[bold red]Step {step_number} not found in branch '{branch}'[/bold red]")
+        self.console.print(f"[bold red]Step {step_number} not found in branch '{branch_name}'[/bold red]")
         return None
 
     def _build_table(self, step, show_parameters):
@@ -48,20 +49,20 @@ class Plotter:
 
         return table
 
-    def get_all_trace_from_branch(self, trace, branch):
-        branch_trace = trace.get(branch)
-        if not branch_trace:
-            self.console.print(f"[bold red]Branch '{branch}' not found[/bold red]")
+    def get_all_trace_from_branch(self, trace, branch_name):
+        branch = trace.branch_from(branch_name)
+        if not branch:
+            self.console.print(f"[bold red]Branch '{branch_name}' not found[/bold red]")
             return
 
-        steps = branch_trace.get("steps", [])
+        steps = trace.steps_from(branch_name)
         if not steps:
-            self.console.print(f"[yellow]No steps found in branch '{branch}'[/yellow]")
+            self.console.print(f"[yellow]No steps found in branch '{branch_name}'[/yellow]")
             return
 
         panels = self._build_trace_panels(steps)
 
-        self.console.print(f"\n[bold underline]Pipeline Trace of branch: {branch}[/bold underline]\n")
+        self.console.print(f"\n[bold underline]Pipeline Trace of branch: {branch_name}[/bold underline]\n")
         self.console.print(*panels, justify="center")
 
     def _build_trace_panels(self, steps):
