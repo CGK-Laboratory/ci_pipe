@@ -93,10 +93,28 @@ class CIPipe:
         step_folder_name = f"{self._branch_name} - Step {steps_count + 1} - {next_step_name}"
         return self._file_system.join(self._outputs_directory, step_folder_name)
 
-    def create_output_directory_for_next_step(self,
-                                              next_step_name):  # TODO: analyze if this is the best place for this logic
-        self._file_system.makedirs(self.output_directory_for_next_step(next_step_name), exist_ok=True)
-        return self
+    def create_output_directory_for_next_step(self, next_step_name):  # TODO: analyze if this is the best place for this logic
+        output_dir = self.output_directory_for_next_step(next_step_name)
+        self._file_system.makedirs(output_dir, exist_ok=True)
+        return output_dir
+
+    def copy_file_to_output_directory(self, file_path, next_step_name):  # TODO: analyze if this is the best place for this logic
+        output_dir = self.output_directory_for_next_step(next_step_name)
+        new_file_path = self._file_system.copy2(file_path, output_dir)
+        return new_file_path
+
+    def associate_keys_by_id(self, key, key_to_associate):
+        key_inputs = self.output(key)
+        key_to_associate_inputs = self.output(key_to_associate)
+
+        pairs = [
+            (key_input['ids'], key_input['value'], key_to_associate_input['value'])
+            for key_input in key_inputs
+            for key_to_associate_input in key_to_associate_inputs
+            if key_input['ids'] == key_to_associate_input['ids']
+        ]
+        
+        return pairs
 
     # Modules
 

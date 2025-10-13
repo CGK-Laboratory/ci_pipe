@@ -43,7 +43,12 @@ class InMemoryFileSystem(FileSystemInterface):
 
     def copy2(self, src: str, dst: str):
         if src in self.files:
-            self.files[dst] = self.files[src]
+            src_filename = self.base_path(src)
+            dst_path = self.join(dst, src_filename)
+            self.files[dst_path] = StringIO(self.files[src].getvalue())
+            return dst_path
+        else:
+            raise FileNotFoundError(f"No such file: {src}")
 
     def join(self, directory, filename):
         return f"{directory}/{filename}"
