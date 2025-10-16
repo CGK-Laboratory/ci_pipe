@@ -33,6 +33,10 @@ class ISXModule():
         self._isx = isx
         self._ci_pipe = ci_pipe
 
+        self._lr_reference_selection_strategies = {
+            'by_num_cells_desc': self._lr_by_num_cells_desc,
+        }
+
     # TODO: Find the best way to remove repetition on these step methods, without losing clarity of what each step does
 
     @step(PREPROCESS_VIDEOS_STEP)
@@ -348,6 +352,7 @@ class ISXModule():
         self,
         inputs,
         *,
+        isx_lr_reference_selection_strategy=None,
         isx_lr_min_correlation=0.5,
         isx_lr_accepted_cells_only=False
     ):
@@ -361,30 +366,20 @@ class ISXModule():
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.LONGITUDINAL_REGISTRATION_STEP)
         all_ids = list(set(id for input in inputs('videos-isxd') for id in input['ids']))
 
-        for input in inputs('videos-isxd'):
-            input_video_paths.append(input['value'])
-            output_path = self._isx.make_output_file_path(input['value'], output_dir, self.LONGITUDINAL_REGISTRATION_SUFFIX)
-            output_videos.append({'ids': input['ids'], 'value': output_path})
-            output_video_paths.append(output_path)
-        
-        for input in inputs('cellsets-isxd'):
-            input_cellset_paths.append(input['value'])
-            output_path = self._isx.make_output_file_path(input['value'], output_dir, self.LONGITUDINAL_REGISTRATION_SUFFIX, ext='csv')
-            output_cellsets.append({'ids': input['ids'], 'value': output_path})
-            output_cellset_paths.append(output_path)
+        self._load_outputs_and_paths_from_inputs(inputs('videos-isxd'), output_dir, 'isxd', output_videos, input_video_paths, output_video_paths)
+        self._load_outputs_and_paths_from_inputs(inputs('cellsets-isxd'), output_dir, 'csv', output_cellsets, input_cellset_paths, output_cellset_paths)
 
-        output_correspondences_table_path = self._ci_pipe.file_in_output_directory(
-            f"{self.LONGITUDINAL_REGISTRATION_CORRESPONDENCES_TABLE_NAME}.csv",
-            self.LONGITUDINAL_REGISTRATION_STEP
-        )
-        output_crop_rect_path = self._ci_pipe.file_in_output_directory(
-            f"{self.LONGITUDINAL_REGISTRATION_CROP_RECT_NAME}.csv",
-            self.LONGITUDINAL_REGISTRATION_STEP
-        )
-        output_transform_path = self._ci_pipe.file_in_output_directory(
-            f"{self.LONGITUDINAL_REGISTRATION_TRANSFORM_NAME}.csv",
-            self.LONGITUDINAL_REGISTRATION_STEP
-        )
+        # TODO: Throw error if strategy name is invalid, consider using enum
+        if isx_lr_reference_selection_strategy is not None and isx_lr_reference_selection_strategy in self._lr_reference_selection_strategies:
+            input_cellset_paths, output_cellset_paths, input_video_paths, output_video_paths = self._apply_lr_reference_selection(
+                isx_lr_reference_selection_strategy,
+                input_cellset_paths,
+                output_cellset_paths,
+                input_video_paths,
+                output_video_paths
+            )
+
+        output_correspondences_table_path, output_crop_rect_path, output_transform_path = self._generate_lr_output_file_paths()
 
         self._isx.longitudinal_registration(
             input_cell_set_files=input_cellset_paths,
@@ -405,3 +400,53 @@ class ISXModule():
             'longitudinal-registration-crop-rect': [{'ids': all_ids, 'value': output_crop_rect_path}],
             'longitudinal-registration-transform': [{'ids': all_ids, 'value': output_transform_path}]
         }
+
+
+    # LR reference selection
+
+    def _lr_by_num_cells_desc(self, input_cellsets):
+        cell_counts = [self._isx.CellSet.read(path).num_cells for path in input_cellsets]
+        return sorted(range(len(cell_counts)), key=lambda i: cell_counts[i], reverse=True)
+
+    # Private methods
+
+    def _load_outputs_and_paths_from_inputs(self, inputs, output_dir, ext, outputs, input_paths, output_paths):
+        for input in inputs:
+            input_paths.append(input['value'])
+            output_path = self._isx.make_output_file_path(input['value'], output_dir, self.LONGITUDINAL_REGISTRATION_SUFFIX, ext=ext)
+            outputs.append({'ids': input['ids'], 'value': output_path})
+            output_paths.append(output_path)
+
+    def _generate_lr_output_file_paths(self):
+        output_correspondences_table_path = self._ci_pipe.file_in_output_directory(
+            f"{self.LONGITUDINAL_REGISTRATION_CORRESPONDENCES_TABLE_NAME}.csv",
+            self.LONGITUDINAL_REGISTRATION_STEP
+        )
+        output_crop_rect_path = self._ci_pipe.file_in_output_directory(
+            f"{self.LONGITUDINAL_REGISTRATION_CROP_RECT_NAME}.csv",
+            self.LONGITUDINAL_REGISTRATION_STEP
+        )
+        output_transform_path = self._ci_pipe.file_in_output_directory(
+            f"{self.LONGITUDINAL_REGISTRATION_TRANSFORM_NAME}.csv",
+            self.LONGITUDINAL_REGISTRATION_STEP
+        )
+
+        return output_correspondences_table_path, output_crop_rect_path, output_transform_path
+
+    def _apply_lr_reference_selection(self, select_reference_lambda, input_cellsets, output_cellsets, input_movies, output_movies):
+        result = self._lr_reference_selection_strategies[select_reference_lambda](input_cellsets)
+
+        if all(isinstance(_, int) for _ in result):
+            order = result
+        else:
+            order = [input_cellsets.index(p) for p in result]
+
+        reorder = lambda lst: [lst[i] for i in order]
+
+        return (
+            reorder(input_cellsets),
+            reorder(output_cellsets),
+            reorder(input_movies),
+            reorder(output_movies),
+        )
+

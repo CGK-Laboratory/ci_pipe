@@ -128,6 +128,20 @@ class InMemoryISX():
         if crop_csv_file:
             self._file_system.write(crop_csv_file, "")
 
+    @property
+    def CellSet(self):
+        class CellSet:
+            @staticmethod
+            def read(p):
+                if not self._file_system.exists(p):
+                    raise IOError(f"Cannot read file: {p}")
+                class Dummy:
+                    @property
+                    def num_cells(self):
+                        return 1
+                return Dummy()
+        return CellSet
+
     def export_movie_to_tiff(self,
                              input_movie_files,
                              output_movie_file,
