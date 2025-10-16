@@ -87,6 +87,10 @@ class CIPipe:
         new_file_path = self._file_system.copy2(file_path, output_dir)
         return new_file_path
 
+    def file_in_output_directory(self, file_name, next_step_name):  # TODO: analyze if this is the best place for this logic
+        output_dir = self.output_directory_for_next_step(next_step_name)
+        return self._file_system.join(output_dir, file_name)
+
     def associate_keys_by_id(self, key, key_to_associate):
         key_inputs = self.output(key)
         key_to_associate_inputs = self.output(key_to_associate)
