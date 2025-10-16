@@ -105,6 +105,29 @@ class InMemoryISX():
     ):
         pass
 
+    def longitudinal_registration(
+        self,
+        input_cell_set_files,
+        output_cell_set_files,
+        input_movie_files=[],
+        output_movie_files=[],
+        csv_file='',
+        min_correlation=0.5,
+        accepted_cells_only=False,
+        transform_csv_file='',
+        crop_csv_file=''
+    ):
+        for output_file in output_cell_set_files:
+            self._file_system.write(output_file, "")
+        for output_file in output_movie_files:
+            self._file_system.write(output_file, "")
+        if csv_file:
+            self._file_system.write(csv_file, "")
+        if transform_csv_file:
+            self._file_system.write(transform_csv_file, "")
+        if crop_csv_file:
+            self._file_system.write(crop_csv_file, "")
+
     def export_movie_to_tiff(self,
                              input_movie_files,
                              output_movie_file,

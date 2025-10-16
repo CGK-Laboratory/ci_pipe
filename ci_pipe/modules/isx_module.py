@@ -12,15 +12,20 @@ class ISXModule():
     AUTO_ACCEPT_REJECT_CELLS_STEP = "ISX Auto Accept Reject Cells"
     EXPORT_MOVIE_TO_TIFF_STEP = "ISX Export movie to TIFF"
     EXPORT_MOVIE_TO_NWB_STEP = "ISX Export movie to NWB"
-    PREPROCESS_VIDEOS_SUFIX = "PP"
-    BANDPASS_FILTER_VIDEOS_SUFIX = "BP"
-    MOTION_CORRECTION_VIDEOS_SUFIX = "MC"
-    MOTION_CORRECTION_VIDEOS_TRANSLATIONS_SUFIX = "translations"
-    MOTION_CORRECTION_VIDEOS_CROP_RECT_SUFIX = "crop-rect"
-    MOTION_CORRECTION_VIDEOS_MEAN_IMAGES_SUFIX = "mean-image"
-    NORMALIZE_DFF_VIDEOS_SUFIX = "DFF"
-    EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFIX = "PCA-ICA"
-    DETECT_EVENTS_IN_CELLS_SUFIX = "ED"
+    LONGITUDINAL_REGISTRATION_STEP = "ISX Longitudinal Registration"
+    PREPROCESS_VIDEOS_SUFFIX = "PP"
+    BANDPASS_FILTER_VIDEOS_SUFFIX = "BP"
+    MOTION_CORRECTION_VIDEOS_SUFFIX = "MC"
+    MOTION_CORRECTION_VIDEOS_TRANSLATIONS_SUFFIX = "translations"
+    MOTION_CORRECTION_VIDEOS_CROP_RECT_SUFFIX = "crop-rect"
+    MOTION_CORRECTION_VIDEOS_MEAN_IMAGES_SUFFIX = "mean-image"
+    NORMALIZE_DFF_VIDEOS_SUFFIX = "DFF"
+    EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFFIX = "PCA-ICA"
+    DETECT_EVENTS_IN_CELLS_SUFFIX = "ED"
+    LONGITUDINAL_REGISTRATION_SUFFIX = "LR"
+    LONGITUDINAL_REGISTRATION_CORRESPONDENCES_TABLE_NAME= "LR-correspondences-table"
+    LONGITUDINAL_REGISTRATION_CROP_RECT_NAME= "LR-crop-rect"
+    LONGITUDINAL_REGISTRATION_TRANSFORM_NAME= "LR-transform"
 
     def __init__(self, isx, ci_pipe):
         if isx is None:
@@ -47,7 +52,7 @@ class ISXModule():
 
         for input in inputs('videos-isxd'):
             input_path = input['value']
-            output_path = self._isx.make_output_file_path(input_path, output_dir, self.PREPROCESS_VIDEOS_SUFIX)
+            output_path = self._isx.make_output_file_path(input_path, output_dir, self.PREPROCESS_VIDEOS_SUFFIX)
 
             self._isx.preprocess(
                 input_movie_files=[input_path],
@@ -81,7 +86,7 @@ class ISXModule():
 
         for input in inputs('videos-isxd'):
             input_path = input['value']
-            output_path = self._isx.make_output_file_path(input_path, output_dir, self.BANDPASS_FILTER_VIDEOS_SUFIX)
+            output_path = self._isx.make_output_file_path(input_path, output_dir, self.BANDPASS_FILTER_VIDEOS_SUFFIX)
 
             self._isx.spatial_filter(
                 input_movie_files=[input_path],
@@ -122,15 +127,15 @@ class ISXModule():
         for input in inputs('videos-isxd'):
             input_path = input['value']
             output_video_path = self._isx.make_output_file_path(input_path, output_dir,
-                                                                self.MOTION_CORRECTION_VIDEOS_SUFIX)
+                                                                self.MOTION_CORRECTION_VIDEOS_SUFFIX)
             output_translations_path = self._isx.make_output_file_path(input_path, output_dir,
-                                                                       self.MOTION_CORRECTION_VIDEOS_TRANSLATIONS_SUFIX,
+                                                                       self.MOTION_CORRECTION_VIDEOS_TRANSLATIONS_SUFFIX,
                                                                        ext='csv')
             output_crop_rect_path = self._isx.make_output_file_path(input_path, output_dir,
-                                                                    f'{isx_mc_series_name}-{self.MOTION_CORRECTION_VIDEOS_CROP_RECT_SUFIX}',
+                                                                    f'{isx_mc_series_name}-{self.MOTION_CORRECTION_VIDEOS_CROP_RECT_SUFFIX}',
                                                                     ext='csv')
             output_mean_image_path = self._isx.make_output_file_path(input_path, output_dir,
-                                                                     f'{isx_mc_series_name}-{self.MOTION_CORRECTION_VIDEOS_MEAN_IMAGES_SUFIX}')
+                                                                     f'{isx_mc_series_name}-{self.MOTION_CORRECTION_VIDEOS_MEAN_IMAGES_SUFFIX}')
 
             self._isx.project_movie(
                 input_movie_files=[input_path],
@@ -177,7 +182,7 @@ class ISXModule():
 
         for input in inputs('videos-isxd'):
             input_path = input['value']
-            output_path = self._isx.make_output_file_path(input_path, output_dir, self.NORMALIZE_DFF_VIDEOS_SUFIX)
+            output_path = self._isx.make_output_file_path(input_path, output_dir, self.NORMALIZE_DFF_VIDEOS_SUFFIX)
 
             self._isx.dff(
                 input_movie_files=[input_path],
@@ -211,7 +216,7 @@ class ISXModule():
         for input in inputs('videos-isxd'):
             input_path = input['value']
             output_path = self._isx.make_output_file_path(input_path, output_dir,
-                                                          self.EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFIX)
+                                                          self.EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFFIX)
 
             self._isx.pca_ica(
                 input_movie_files=[input_path],
@@ -248,7 +253,7 @@ class ISXModule():
 
         for input in inputs('cellsets-isxd'):
             input_path = input['value']
-            output_path = self._isx.make_output_file_path(input_path, output_dir, self.DETECT_EVENTS_IN_CELLS_SUFIX)
+            output_path = self._isx.make_output_file_path(input_path, output_dir, self.DETECT_EVENTS_IN_CELLS_SUFFIX)
 
             self._isx.event_detection(
                 input_cell_set_files=[input_path],
@@ -297,7 +302,7 @@ class ISXModule():
             self,
             inputs,
             *,
-            write_invalid_frames=False
+            isx_emt_write_invalid_frames=False
     ):
 
         output = []
@@ -307,7 +312,7 @@ class ISXModule():
             input_path = video['value']
             output_path = self._isx.make_output_file_path(input_path, output_dir, '', ext='tiff')
 
-            self._isx.export_movie_to_tiff([input_path], output_path, write_invalid_frames=write_invalid_frames)
+            self._isx.export_movie_to_tiff([input_path], output_path, write_invalid_frames=isx_emt_write_invalid_frames)
 
             output.append({'ids': video['ids'], 'value': output_path})
 
@@ -320,7 +325,7 @@ class ISXModule():
             self,
             inputs,
             *,
-            write_invalid_frames=False
+            isx_emn_write_invalid_frames=False
     ):
 
         output = []
@@ -330,10 +335,73 @@ class ISXModule():
             input_path = video['value']
             output_path = self._isx.make_output_file_path(input_path, output_dir, '', ext='nwb')
 
-            self._isx.export_movie_to_nwb([input_path], output_path, write_invalid_frames=write_invalid_frames)
+            self._isx.export_movie_to_nwb([input_path], output_path, write_invalid_frames=isx_emn_write_invalid_frames)
 
             output.append({'ids': video['ids'], 'value': output_path})
 
         return {
             'videos-nwb': output
+        }
+    
+    @step(LONGITUDINAL_REGISTRATION_STEP)
+    def longitudinal_registration(
+        self,
+        inputs,
+        *,
+        isx_lr_min_correlation=0.5,
+        isx_lr_accepted_cells_only=False
+    ):
+        output_videos = []
+        output_cellsets = []
+        input_video_paths = []
+        output_video_paths = []
+        input_cellset_paths = []
+        output_cellset_paths = []
+        
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(self.LONGITUDINAL_REGISTRATION_STEP)
+        all_ids = list(set(id for input in inputs('videos-isxd') for id in input['ids']))
+
+        for input in inputs('videos-isxd'):
+            input_video_paths.append(input['value'])
+            output_path = self._isx.make_output_file_path(input['value'], output_dir, self.LONGITUDINAL_REGISTRATION_SUFFIX)
+            output_videos.append({'ids': input['ids'], 'value': output_path})
+            output_video_paths.append(output_path)
+        
+        for input in inputs('cellsets-isxd'):
+            input_cellset_paths.append(input['value'])
+            output_path = self._isx.make_output_file_path(input['value'], output_dir, self.LONGITUDINAL_REGISTRATION_SUFFIX, ext='csv')
+            output_cellsets.append({'ids': input['ids'], 'value': output_path})
+            output_cellset_paths.append(output_path)
+
+        output_correspondences_table_path = self._ci_pipe.file_in_output_directory(
+            f"{self.LONGITUDINAL_REGISTRATION_CORRESPONDENCES_TABLE_NAME}.csv",
+            self.LONGITUDINAL_REGISTRATION_STEP
+        )
+        output_crop_rect_path = self._ci_pipe.file_in_output_directory(
+            f"{self.LONGITUDINAL_REGISTRATION_CROP_RECT_NAME}.csv",
+            self.LONGITUDINAL_REGISTRATION_STEP
+        )
+        output_transform_path = self._ci_pipe.file_in_output_directory(
+            f"{self.LONGITUDINAL_REGISTRATION_TRANSFORM_NAME}.csv",
+            self.LONGITUDINAL_REGISTRATION_STEP
+        )
+
+        self._isx.longitudinal_registration(
+            input_cell_set_files=input_cellset_paths,
+            output_cell_set_files=output_cellset_paths,
+            input_movie_files=input_video_paths,
+            output_movie_files=output_video_paths,
+            csv_file=output_correspondences_table_path,
+            min_correlation=isx_lr_min_correlation,
+            accepted_cells_only=isx_lr_accepted_cells_only,
+            transform_csv_file=output_transform_path,
+            crop_csv_file=output_crop_rect_path
+        )
+
+        return {
+            'videos-isxd': output_videos,
+            'cellsets-isxd': output_cellsets,
+            'longitudinal-registration-correspondences-table': [{'ids': all_ids, 'value': output_correspondences_table_path}],
+            'longitudinal-registration-crop-rect': [{'ids': all_ids, 'value': output_crop_rect_path}],
+            'longitudinal-registration-transform': [{'ids': all_ids, 'value': output_transform_path}]
         }
