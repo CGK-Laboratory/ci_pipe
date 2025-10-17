@@ -3,7 +3,6 @@ import unittest
 from ci_pipe.errors.defaults_after_step_error import DefaultsAfterStepsError
 from ci_pipe.errors.output_key_not_found_error import OutputKeyNotFoundError
 from ci_pipe.pipeline import CIPipe
-from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
 from tests.ci_pipe_test_case import CIPipeTestCase
 
 
@@ -13,7 +12,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
 
         # Then
         output = pipeline.output('numbers')
@@ -27,7 +26,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
 
         # Then
         with self.assertRaises(OutputKeyNotFoundError):
@@ -38,7 +37,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self.add_one)
 
         # Then
@@ -53,7 +52,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self.add_one)
         pipeline.step("Add another one", self.add_one)
 
@@ -69,7 +68,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self.add_one)
         pipeline.step("Add one with different key", self.add_one_with_different_key)
 
@@ -86,7 +85,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self.add_one)
         pipeline.step("Add one with different key", self.add_one_with_different_key)
         pipeline.step("Sum all", self.sum_all)
@@ -101,7 +100,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [0]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self.add_one)
         pipeline.step("Add one with different key", self.add_one_with_different_key)
         pipeline.step("Sum all separately", self.sum_all_separately)
@@ -119,7 +118,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [1, 2, 3]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Scale by 2", self.scale, factor=2)
 
         # Then
@@ -132,7 +131,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [1, 2, 3]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.set_defaults(factor=3)
         pipeline.step("Scale by default factor", self.scale)
 
@@ -146,7 +145,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [1, 2, 3]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.set_defaults(factor=3)
         pipeline.step("Scale by 2", self.scale, factor=2)
 
@@ -160,7 +159,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [1, 2, 3]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Scale by function default factor", self.scale)
 
         # Then
@@ -173,7 +172,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [1]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self.add_one)
         new_pipeline_branch = pipeline.branch("Secondary Branch")
         new_pipeline_branch.step("Add one", self.add_one)
@@ -189,7 +188,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [1]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.set_defaults(factor=2)
         new_pipeline_branch = pipeline.branch("Secondary Branch")
         new_pipeline_branch.step("Scale by default factor", self.scale)
@@ -203,7 +202,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [1]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self.add_one)
         new_pipeline_branch = pipeline.branch("Secondary Branch")
         pipeline.step("Add one", self.add_one)
@@ -219,7 +218,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = {'numbers': [1]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
         pipeline.step("Add one", self.add_one)
 
         # Then
@@ -234,7 +233,7 @@ class PipelineTestCase(CIPipeTestCase):
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system, trace_repository=self._trace_repository)
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system)
 
         # Then
         output_isxd = pipeline.output('videos-isxd')
@@ -250,12 +249,11 @@ class PipelineTestCase(CIPipeTestCase):
 
     def test_17_set_defaults_from_file(self):
         # Given
-        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
-        pipeline = CIPipe(pipeline_input, file_system=fs, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
 
         config_path = "config.yaml"
-        fs.write(config_path, "factor: 5\nmultiplier: 2")
+        self._file_system.write(config_path, "factor: 5\nmultiplier: 2")
 
         # When
         pipeline.set_defaults(defaults_path=config_path)
@@ -266,9 +264,8 @@ class PipelineTestCase(CIPipeTestCase):
 
     def test_18_set_defaults_from_kwargs_only(self):
         # Given
-        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
-        pipeline = CIPipe(pipeline_input, file_system=fs, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system,)
 
         # When
         pipeline.set_defaults(factor=3, multiplier=4)
@@ -279,12 +276,11 @@ class PipelineTestCase(CIPipeTestCase):
 
     def test_19_set_defaults_combined_file_and_kwargs(self):
         # Given
-        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
-        pipeline = CIPipe(pipeline_input, file_system=fs, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system,)
 
         config_path = "config.yaml"
-        fs.write(config_path, "factor: 5\nmultiplier: 2")
+        self._file_system.write(config_path, "factor: 5\nmultiplier: 2")
 
         # When
         pipeline.set_defaults(factor=10, defaults_path=config_path)
@@ -295,11 +291,10 @@ class PipelineTestCase(CIPipeTestCase):
 
     def test_22_pass_defaults_directly_in_pipeline_creation_kwargs(self):
         # Given
-        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=fs, defaults={'factor': 3, 'multiplier': 4}, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, defaults={'factor': 3, 'multiplier': 4})
 
         # Then
         self.assertEqual(pipeline._defaults.get('factor'), 3)
@@ -307,14 +302,13 @@ class PipelineTestCase(CIPipeTestCase):
 
     def test_23_pass_defaults_from_file_directly_in_pipeline_creation(self):
         # Given
-        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
 
         config_path = "config.yaml"
-        fs.write(config_path, "factor: 5\nmultiplier: 2")
+        self._file_system.write(config_path, "factor: 5\nmultiplier: 2")
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=fs, defaults_path=config_path, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, defaults_path=config_path)
 
         # Then
         self.assertEqual(pipeline._defaults.get('factor'), 5)
@@ -322,14 +316,13 @@ class PipelineTestCase(CIPipeTestCase):
 
     def test_24_pass_combined_defaults_directly_in_pipeline_creation(self):
         # Given
-        fs = InMemoryFileSystem()
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
 
         config_path = "config.yaml"
-        fs.write(config_path, "multiplier: 2")
+        self._file_system.write(config_path, "multiplier: 2")
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=fs, defaults={'factor': 10},defaults_path=config_path, trace_repository=self._trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, defaults={'factor': 10},defaults_path=config_path)
 
         # Then
         self.assertEqual(pipeline._defaults.get('factor'), 10)

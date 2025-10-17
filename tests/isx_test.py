@@ -12,7 +12,7 @@ class ISXTestCase(CIPipeTestCase):
         pipeline_input = {'videos': ['simulation1.isxd']}
 
         # When
-        pipeline = CIPipe(pipeline_input, trace_repository=self._trace_repository, file_system=self._file_system)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
 
         # Then
         with self.assertRaises(ISXBackendNotConfiguredError):
@@ -28,7 +28,6 @@ class ISXTestCase(CIPipeTestCase):
             pipeline_input,
             file_system=self._file_system,
             isx=InMemoryISX(self._file_system),
-            trace_repository=self._trace_repository
         )
         pipeline.isx.preprocess_videos()
 
@@ -53,7 +52,6 @@ class ISXTestCase(CIPipeTestCase):
             pipeline_input,
             file_system=self._file_system,
             isx=InMemoryISX(self._file_system),
-            trace_repository=self._trace_repository
         )
 
         pipeline.isx.bandpass_filter_videos()
@@ -79,7 +77,6 @@ class ISXTestCase(CIPipeTestCase):
             pipeline_input,
             file_system=self._file_system,
             isx=InMemoryISX(self._file_system),
-            trace_repository=self._trace_repository
         )
         pipeline.isx.motion_correction_videos()
 
@@ -131,7 +128,6 @@ class ISXTestCase(CIPipeTestCase):
             pipeline_input,
             file_system=self._file_system,
             isx=InMemoryISX(self._file_system),
-            trace_repository=self._trace_repository
         )
         pipeline.isx.normalize_dff_videos()
 
@@ -156,7 +152,6 @@ class ISXTestCase(CIPipeTestCase):
             pipeline_input,
             file_system=self._file_system,
             isx=InMemoryISX(self._file_system),
-            trace_repository=self._trace_repository
         )
         pipeline.isx.extract_neurons_pca_ica()
 
@@ -181,7 +176,6 @@ class ISXTestCase(CIPipeTestCase):
             pipeline_input,
             file_system=self._file_system,
             isx=InMemoryISX(self._file_system),
-            trace_repository=self._trace_repository
         )
         pipeline.isx.extract_neurons_pca_ica()
         pipeline.isx.detect_events_in_cells()
@@ -207,7 +201,6 @@ class ISXTestCase(CIPipeTestCase):
             pipeline_input,
             file_system=self._file_system,
             isx=InMemoryISX(self._file_system),
-            trace_repository=self._trace_repository
         )
         pipeline.isx.extract_neurons_pca_ica()
         pipeline.isx.detect_events_in_cells()

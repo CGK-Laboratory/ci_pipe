@@ -6,6 +6,7 @@ from ci_pipe.errors.output_key_not_found_error import OutputKeyNotFoundError
 from ci_pipe.modules.isx_module import ISXModule
 from ci_pipe.step import Step
 from ci_pipe.trace.schema.branch import Branch
+from ci_pipe.trace.trace_repository import TraceRepository
 from ci_pipe.utils.config_defaults import ConfigDefaults
 from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
 
@@ -14,7 +15,9 @@ class CIPipe:
     RESUME_EXECUTION_ERROR_MESSAGE = "Cannot resume execution without the same trace file and output directory"
 
     @classmethod
-    def with_videos_from_directory(cls, input, trace_repository, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None):
+    def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
+                                   steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
+                                   plotter=None, isx=None):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
         return cls(
@@ -27,10 +30,10 @@ class CIPipe:
             defaults_path=defaults_path,
             plotter=plotter,
             isx=isx,
-            trace_repository=trace_repository
         )
 
-    def __init__(self, inputs, trace_repository, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None):
+    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
+                 file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None, validator=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
         self._steps = steps or []
@@ -38,8 +41,9 @@ class CIPipe:
         self._branch_name = branch_name
         self._outputs_directory = outputs_directory
         self._file_system = file_system
-        self._trace_repository = trace_repository
-        self._trace = trace_repository.load()
+        self._trace_repository = TraceRepository(self._file_system, "trace.json",
+                                                 validator)
+        self._trace = self._trace_repository.load()
         self._plotter = plotter
         self._isx = isx
         self._load_combined_defaults(defaults, defaults_path)
@@ -76,11 +80,9 @@ class CIPipe:
             file_system=self._file_system,
             defaults=self._defaults.copy(),
             plotter=self._plotter,
-            isx=self._isx,
-            trace_repository=self._trace_repository
-        )
+            isx=self._isx, )
         return new_pipe
-    
+
     def set_defaults(self, defaults_path=None, **defaults):
         if self._steps:
             raise DefaultsAfterStepsError()
@@ -93,12 +95,14 @@ class CIPipe:
         step_folder_name = f"{self._branch_name} - Step {steps_count + 1} - {next_step_name}"
         return self._file_system.join(self._outputs_directory, step_folder_name)
 
-    def create_output_directory_for_next_step(self, next_step_name):  # TODO: analyze if this is the best place for this logic
+    def create_output_directory_for_next_step(self,
+                                              next_step_name):  # TODO: analyze if this is the best place for this logic
         output_dir = self.output_directory_for_next_step(next_step_name)
         self._file_system.makedirs(output_dir, exist_ok=True)
         return output_dir
 
-    def copy_file_to_output_directory(self, file_path, next_step_name):  # TODO: analyze if this is the best place for this logic
+    def copy_file_to_output_directory(self, file_path,
+                                      next_step_name):  # TODO: analyze if this is the best place for this logic
         output_dir = self.output_directory_for_next_step(next_step_name)
         new_file_path = self._file_system.copy2(file_path, output_dir)
         return new_file_path
@@ -113,8 +117,11 @@ class CIPipe:
             for key_to_associate_input in key_to_associate_inputs
             if key_input['ids'] == key_to_associate_input['ids']
         ]
-        
+
         return pairs
+
+    def assert_trace_is_valid(self):
+        return self._trace_repository.validate()
 
     # Modules
 
@@ -141,7 +148,7 @@ class CIPipe:
 
     def _load_combined_defaults(self, defaults, defaults_path):
         loaded_defaults = {}
-        
+
         if defaults_path:
             file_defaults = ConfigDefaults.load_from_file(defaults_path, self._file_system)
             loaded_defaults.update(file_defaults)
@@ -149,7 +156,7 @@ class CIPipe:
             loaded_defaults.update(defaults)
 
         self._load_defaults(loaded_defaults)
-    
+
     def _populate_default_params(self, step_function, kwargs):
         for name, param in inspect.signature(step_function).parameters.items():
             if name in kwargs:
@@ -174,7 +181,6 @@ class CIPipe:
 
         self._trace_repository.save(self._trace)
 
-
     def _update_trace_if_trace_builder_provided(self):
         if not self._trace:
             return
@@ -197,7 +203,6 @@ class CIPipe:
 
         self._trace_repository.save(self._trace)
 
-
     def _inputs_with_ids(self, inputs):
         inputs_with_ids = {}
         for key, values in inputs.items():
@@ -208,4 +213,3 @@ class CIPipe:
 
     def _hash_id(self, key, value):
         return hashlib.sha256((key + str(value)).encode()).hexdigest()
-

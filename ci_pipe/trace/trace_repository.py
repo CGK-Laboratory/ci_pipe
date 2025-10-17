@@ -22,3 +22,10 @@ class TraceRepository:
 
     def exists(self):
         return self._file_system.exists(self._filename)
+
+    # TODO: Think if we need to handle this onSave instead of here
+    def validate(self):
+        if not self._validator:
+            return True
+        data_as_json = self.load().to_dict()
+        return self._validator.validate(data_as_json)

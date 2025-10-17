@@ -6,7 +6,6 @@ from rich.console import Console
 
 from ci_pipe.pipeline import CIPipe
 from ci_pipe.plotter import Plotter
-from ci_pipe.trace.trace_repository import TraceRepository
 from tests.ci_pipe_test_case import CIPipeTestCase
 
 
@@ -37,17 +36,14 @@ class PlotterTestCase(CIPipeTestCase):
                 }]
             }
         })
-        trace_repository = TraceRepository(self._file_system, "trace.json")
 
         pipeline = CIPipe(pipeline_input,
                           file_system=self._file_system,
-                          outputs_directory='output',
-                          trace_repository=trace_repository)
+                          outputs_directory='output' )
         pipeline.step("Add one", self.add_one)
 
         # When
         self._plotter.get_step_info(pipeline._trace, step_number=1, branch="Main Branch")
-
 
         # Then
         out = self._out()
@@ -85,9 +81,7 @@ class PlotterTestCase(CIPipeTestCase):
                 }]
             }
         })
-        trace_repository = TraceRepository(self._file_system, "trace.json")
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, outputs_directory='output',
-                          trace_repository=trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, outputs_directory='output')
         pipeline.step("Add one", self.add_one)
         pipeline.step("Multiply by two", self.multiply_by_two)
 
@@ -109,9 +103,7 @@ class PlotterTestCase(CIPipeTestCase):
                 "value": 0
             }]
         }).with_outputs_directory(self._expected_output_directory())
-        trace_repository = TraceRepository(self._file_system, "trace.json")
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, outputs_directory='output',
-                          trace_repository=trace_repository)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, outputs_directory='output')
 
         # When
         self._plotter.get_all_trace_from_branch(pipeline._trace, "NonExistent")
