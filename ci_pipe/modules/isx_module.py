@@ -3,7 +3,7 @@ from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfigu
 
 
 
-class ISXModule():
+class ISXModule:
     # TODO: Consider moving these constants to a different config file
     PREPROCESS_VIDEOS_STEP = "ISX Preprocess Videos"
     BANDPASS_FILTER_VIDEOS_STEP = "ISX Bandpass Filter Videos"
