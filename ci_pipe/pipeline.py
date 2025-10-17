@@ -1,24 +1,39 @@
-import json
+import hashlib
+import inspect
 
+from ci_pipe.errors.defaults_after_step_error import DefaultsAfterStepsError
+from ci_pipe.errors.output_key_not_found_error import OutputKeyNotFoundError
 from ci_pipe.modules.isx_module import ISXModule
 from ci_pipe.step import Step
+from ci_pipe.trace.schema.branch import Branch
+from ci_pipe.trace.trace_repository import TraceRepository
 from ci_pipe.utils.config_defaults import ConfigDefaults
 from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
-
-import inspect
-import hashlib
 
 
 class CIPipe:
     RESUME_EXECUTION_ERROR_MESSAGE = "Cannot resume execution without the same trace file and output directory"
 
     @classmethod
-    def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), trace_builder=None, defaults=None, defaults_path=None, plotter=None, isx=None):
+    def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
+                                   steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
+                                   plotter=None, isx=None):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
-        return cls(inputs, branch_name=branch_name, outputs_directory=outputs_directory, steps=steps, file_system=file_system, trace_builder=trace_builder, defaults=defaults, defaults_path=defaults_path, plotter=plotter, isx=isx)
+        return cls(
+            inputs,
+            branch_name=branch_name,
+            outputs_directory=outputs_directory,
+            steps=steps,
+            file_system=file_system,
+            defaults=defaults,
+            defaults_path=defaults_path,
+            plotter=plotter,
+            isx=isx,
+        )
 
-    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None, file_system=PersistentFileSystem(), trace_builder=None, defaults=None, defaults_path=None, plotter=None, isx=None):
+    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
+                 file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None, validator=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
         self._steps = steps or []
@@ -26,8 +41,9 @@ class CIPipe:
         self._branch_name = branch_name
         self._outputs_directory = outputs_directory
         self._file_system = file_system
-        self._trace_builder = trace_builder
-        self._is_restored_from_trace = False
+        self._trace_repository = TraceRepository(self._file_system, "trace.json",
+                                                 validator)
+        self._trace = self._trace_repository.load()
         self._plotter = plotter
         self._isx = isx
         self._load_combined_defaults(defaults, defaults_path)
@@ -41,14 +57,9 @@ class CIPipe:
                 return step.step_output()[key]
         if key in self._pipeline_inputs:
             return self._pipeline_inputs[key]
-        raise KeyError(f"Key '{key}' not found in any step output or pipeline input.")
+        raise OutputKeyNotFoundError(key)
 
     def step(self, step_name, step_function, *args, **kwargs):
-        if self._trace_builder:
-            self._assert_pipeline_can_resume_execution()
-            self._restore_previous_steps_from_trace_if_applicable()
-            if self._trace_builder.was_step_already_executed(self._branch_name, step_name):
-                return self
         self._populate_default_params(step_function, kwargs)
         new_step = Step(step_name, self.output, step_function, args, kwargs)
         self._steps.append(new_step)
@@ -56,18 +67,25 @@ class CIPipe:
         return self
 
     def info(self, step_number):
-        self._plotter.get_step_info(self._trace_builder._load_trace_from_file(), step_number, self._branch_name)
+        self._plotter.get_step_info(self._trace_repository.load(), step_number, self._branch_name)
 
     def trace(self):
-        self._plotter.get_all_trace_from_branch(self._trace_builder._load_trace_from_file(), self._branch_name)
+        self._plotter.get_all_trace_from_branch(self._trace_repository.load(), self._branch_name)
 
     def branch(self, branch_name):
-        new_pipe = CIPipe(self._raw_pipeline_inputs.copy(), branch_name=branch_name, steps=self._steps.copy(), file_system=self._file_system, trace_builder=self._trace_builder, defaults=self._defaults.copy(), plotter=self._plotter, isx=self._isx)
+        new_pipe = CIPipe(
+            self._raw_pipeline_inputs.copy(),
+            branch_name=branch_name,
+            steps=self._steps.copy(),
+            file_system=self._file_system,
+            defaults=self._defaults.copy(),
+            plotter=self._plotter,
+            isx=self._isx, )
         return new_pipe
 
     def set_defaults(self, defaults_path=None, **defaults):
         if self._steps:
-            raise RuntimeError("Defaults must be set before adding any steps.")
+            raise DefaultsAfterStepsError()
         self._load_combined_defaults(defaults, defaults_path)
         self._build_initial_trace()
         return self
@@ -77,12 +95,14 @@ class CIPipe:
         step_folder_name = f"{self._branch_name} - Step {steps_count + 1} - {next_step_name}"
         return self._file_system.join(self._outputs_directory, step_folder_name)
 
-    def create_output_directory_for_next_step(self, next_step_name):  # TODO: analyze if this is the best place for this logic
+    def create_output_directory_for_next_step(self,
+                                              next_step_name):  # TODO: analyze if this is the best place for this logic
         output_dir = self.output_directory_for_next_step(next_step_name)
         self._file_system.makedirs(output_dir, exist_ok=True)
         return output_dir
 
-    def copy_file_to_output_directory(self, file_path, next_step_name):  # TODO: analyze if this is the best place for this logic
+    def copy_file_to_output_directory(self, file_path,
+                                      next_step_name):  # TODO: analyze if this is the best place for this logic
         output_dir = self.output_directory_for_next_step(next_step_name)
         new_file_path = self._file_system.copy2(file_path, output_dir)
         return new_file_path
@@ -99,6 +119,9 @@ class CIPipe:
         ]
 
         return pairs
+
+    def assert_trace_is_valid(self):
+        return self._trace_repository.validate()
 
     # Modules
 
@@ -145,28 +168,40 @@ class CIPipe:
                     kwargs[name] = param.default
 
     def _build_initial_trace(self):
-        if not self._trace_builder or self._steps:
+        if self._steps:
             return
 
-        trace_filename = self._trace_builder.filename()
-        if trace_filename and self._file_system.exists(trace_filename):
-            try:
-                existing = json.loads(self._file_system.read(trace_filename))
-                existing_steps = (existing.get(self._branch_name) or {}).get("steps") or []
-            except Exception:
-                existing_steps = []
-            if len(existing_steps) > 0:
-                return
+        existing_branch = self._trace.branch_from(self._branch_name)
+        if existing_branch and existing_branch.steps():
+            return
+        self._trace.set_pipeline(self._pipeline_inputs, self._defaults, self._outputs_directory)
 
-        self._trace_builder.build_initial_trace(
-            self._pipeline_inputs,
-            self._defaults,
-            self._outputs_directory
-        )
+        if existing_branch is None:
+            self._trace.add_branch(Branch(self._branch_name, []))
+
+        self._trace_repository.save(self._trace)
 
     def _update_trace_if_trace_builder_provided(self):
-        if self._trace_builder:
-            self._trace_builder.update_trace_with_steps(self._steps, self._branch_name)
+        if not self._trace:
+            return
+
+        steps_snapshot = []
+        for idx, step in enumerate(self._steps, 1):
+            steps_snapshot.append({
+                "index": idx,
+                "name": step.name(),
+                "params": step.arguments(),
+                "outputs": step.step_output()
+            })
+
+        branch = self._trace.branch_from(self._branch_name)
+        if branch is None:
+            branch = Branch(self._branch_name, steps_snapshot)
+            self._trace.add_branch(branch)
+        else:
+            self._trace.add_steps(steps_snapshot, branch.name())
+
+        self._trace_repository.save(self._trace)
 
     def _inputs_with_ids(self, inputs):
         inputs_with_ids = {}
@@ -178,58 +213,3 @@ class CIPipe:
 
     def _hash_id(self, key, value):
         return hashlib.sha256((key + str(value)).encode()).hexdigest()
-
-    def _is_pipeline_attempting_to_resume_execution(self) -> bool:
-        trace_filename = self._trace_builder.filename()
-
-        if not trace_filename or not self._file_system.exists(trace_filename):
-            return False
-
-        try:
-            trace = json.loads(self._file_system.read(trace_filename))
-        except Exception:
-            return False
-
-        branch_data = trace.get(self._branch_name) or {}
-        steps = branch_data.get("steps") or []
-        return len(steps) > 0
-
-    def _assert_pipeline_can_resume_execution(self):
-        if not self._is_pipeline_attempting_to_resume_execution():
-            return
-        if not self._is_same_trace_file():
-            raise ValueError(self.RESUME_EXECUTION_ERROR_MESSAGE)
-        if not self._is_same_outputs_directory():
-            raise ValueError(self.RESUME_EXECUTION_ERROR_MESSAGE)
-
-    def _is_same_trace_file(self) -> bool:
-        trace_filename = self._trace_builder.filename()
-        return bool(trace_filename) and self._file_system.exists(trace_filename)
-
-    def _is_same_outputs_directory(self) -> bool:
-        recorded = self._read_outputs_directory_from_trace()
-        return (recorded is None) or (recorded == self._outputs_directory)
-
-    def _read_outputs_directory_from_trace(self):
-        try:
-            data = json.loads(self._file_system.read(self._trace_builder.filename()))
-            return (data.get("pipeline") or {}).get("outputs_directory")
-        except Exception:
-            return None
-
-    def _restore_previous_steps_from_trace_if_applicable(self):
-        if self._is_restored_from_trace or not self._trace_builder:
-            return
-
-        if self._steps:
-            self._is_restored_from_trace = True
-            return
-
-        if not self._is_pipeline_attempting_to_resume_execution():
-            return
-
-        callables = self._trace_builder.restore_callables_functions_for(self._branch_name)
-        for name, params, callable_fn in callables:
-            self._steps.append(Step(name, self.output, callable_fn, (), params))
-
-        self._is_restored_from_trace = True

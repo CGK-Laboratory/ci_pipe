@@ -18,3 +18,14 @@ class Step:
     
     def arguments(self):
         return self._kwargs
+
+    def to_dict(self):
+        return {
+            "name": self.name(),
+            "output": self.output(),
+            "arguments": self.arguments()
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data.get("name"), data.get("output"), data.get("arguments"))
