@@ -1,12 +1,10 @@
 name: Run Tests
 
 on:
+  pull_request:
+    branches: [ "*" ]
   push:
     branches: [ "master" ]
-  pull_request:
-    branches:
-      - master
-      - feat/*
 
 jobs:
   build:
