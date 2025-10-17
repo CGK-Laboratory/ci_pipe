@@ -1,9 +1,9 @@
 import json
 
-from ci_pipe.modules.isx_module import ISXModule
-from ci_pipe.step import Step
-from ci_pipe.utils.config_defaults import ConfigDefaults
-from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
+from src.ci_pipe.modules.isx_module import ISXModule
+from src.ci_pipe.step import Step
+from src.ci_pipe.utils.config_defaults import ConfigDefaults
+from src.external_dependencies.file_system.persistent_file_system import PersistentFileSystem
 
 import inspect
 import hashlib

@@ -1,6 +1,6 @@
 import json
 
-from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
+from src.external_dependencies.file_system.persistent_file_system import PersistentFileSystem
 
 class TraceBuilder:
     

@@ -1,8 +1,8 @@
 import unittest
 
-from ci_pipe.pipeline import CIPipe
-from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
-from external_dependencies.isx.in_memory_isx import InMemoryISX
+from src.ci_pipe.pipeline import CIPipe
+from src.external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
+from src.external_dependencies.isx.in_memory_isx import InMemoryISX
 
 
 class ISXTestCase(unittest.TestCase):

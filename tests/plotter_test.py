@@ -2,10 +2,10 @@ import io
 import re
 import unittest
 from rich.console import Console
-from ci_pipe.pipeline import CIPipe
-from ci_pipe.plotter import Plotter
-from ci_pipe.trace_builder import TraceBuilder
-from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
+from src.ci_pipe.pipeline import CIPipe
+from src.ci_pipe.plotter import Plotter
+from src.ci_pipe.trace_builder import TraceBuilder
+from src.external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
 
 
 def strip_ansi(text: str) -> str:

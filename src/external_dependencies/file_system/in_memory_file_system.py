@@ -1,7 +1,7 @@
 from io import StringIO
 from typing import List
 
-from external_dependencies.file_system.file_system_interface import FileSystemInterface
+from src.external_dependencies.file_system.file_system_interface import FileSystemInterface
 
 class InMemoryFileSystem(FileSystemInterface):
     def __init__(self):

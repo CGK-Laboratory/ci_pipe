@@ -1,4 +1,4 @@
-from ci_pipe.decorators import step
+from src.ci_pipe.decorators import step
 
 
 class ISXModule():

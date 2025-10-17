@@ -4,7 +4,7 @@ from inspect import Parameter, Signature
 from typing import TypeVar, Callable, Protocol, ParamSpec, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ci_pipe.pipeline import CIPipe
+    from src.ci_pipe.pipeline import CIPipe
 
 T_Pipeline = TypeVar("T_Pipeline", bound="CIPipe")
 P = ParamSpec("P")

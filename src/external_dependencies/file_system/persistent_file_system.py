@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import List
 
-from external_dependencies.file_system.file_system_interface import FileSystemInterface
+from src.external_dependencies.file_system.file_system_interface import FileSystemInterface
 
 class PersistentFileSystem(FileSystemInterface):
     def write(self, path: str, content: str):

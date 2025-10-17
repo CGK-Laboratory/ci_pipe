@@ -1,10 +1,8 @@
-import os
-import tempfile
 import unittest
 
-from ci_pipe.pipeline import CIPipe
-from ci_pipe.trace_builder import TraceBuilder
-from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
+from src.ci_pipe.pipeline import CIPipe
+from src.ci_pipe.trace_builder import TraceBuilder
+from src.external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
 
 
 class PipelineTestCase(unittest.TestCase):
