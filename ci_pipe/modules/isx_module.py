@@ -2,6 +2,7 @@ from ci_pipe.decorators import step
 from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
 
 
+
 class ISXModule():
     # TODO: Consider moving these constants to a different config file
     PREPROCESS_VIDEOS_STEP = "ISX Preprocess Videos"
@@ -11,6 +12,8 @@ class ISXModule():
     EXTRACT_NEURONS_PCA_ICA_STEP = "ISX Extract Neurons PCA ICA"
     DETECT_EVENTS_IN_CELLS_STEP = "ISX Detect Events In Cells"
     AUTO_ACCEPT_REJECT_CELLS_STEP = "ISX Auto Accept Reject Cells"
+    EXPORT_MOVIE_TO_TIFF_STEP = "ISX Export movie to TIFF"
+    EXPORT_MOVIE_TO_NWB_STEP = "ISX Export movie to NWB"
     PREPROCESS_VIDEOS_SUFIX = "PP"
     BANDPASS_FILTER_VIDEOS_SUFIX = "BP"
     MOTION_CORRECTION_VIDEOS_SUFIX = "MC"
@@ -31,15 +34,15 @@ class ISXModule():
 
     @step(PREPROCESS_VIDEOS_STEP)
     def preprocess_videos(
-        self,
-        inputs,
-        *,
-        isx_pp_temporal_downsample_factor=1,
-        isx_pp_spatial_downsample_factor=1,
-        isx_pp_crop_rect=None,
-        isx_pp_crop_rect_format="tlbr",
-        isx_pp_fix_defective_pixels=True,
-        isx_pp_trim_early_frames=True
+            self,
+            inputs,
+            *,
+            isx_pp_temporal_downsample_factor=1,
+            isx_pp_spatial_downsample_factor=1,
+            isx_pp_crop_rect=None,
+            isx_pp_crop_rect_format="tlbr",
+            isx_pp_fix_defective_pixels=True,
+            isx_pp_trim_early_frames=True
     ):
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.PREPROCESS_VIDEOS_STEP)
@@ -67,13 +70,13 @@ class ISXModule():
 
     @step(BANDPASS_FILTER_VIDEOS_STEP)
     def bandpass_filter_videos(
-        self,
-        inputs,
-        *,
-        isx_bp_low_cutoff=0.005,
-        isx_bp_high_cutoff=0.5,
-        isx_bp_retain_mean=False,
-        isx_bp_subtract_global_minimum=True
+            self,
+            inputs,
+            *,
+            isx_bp_low_cutoff=0.005,
+            isx_bp_high_cutoff=0.5,
+            isx_bp_retain_mean=False,
+            isx_bp_subtract_global_minimum=True
     ):
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.BANDPASS_FILTER_VIDEOS_STEP)
@@ -99,18 +102,18 @@ class ISXModule():
 
     @step(MOTION_CORRECTION_VIDEOS_STEP)
     def motion_correction_videos(
-        self,
-        inputs,
-        *,
-        isx_mc_series_name="series",
-        isx_mc_max_translation=20,
-        isx_mc_low_bandpass_cutoff=0.004,
-        isx_mc_high_bandpass_cutoff=0.016,
-        isx_mc_roi=None,
-        isx_mc_reference_segment_index=0,
-        isx_mc_reference_frame_index=0,
-        isx_mc_global_registration_weight=1,
-        isx_mc_preserve_input_dimensions=False
+            self,
+            inputs,
+            *,
+            isx_mc_series_name="series",
+            isx_mc_max_translation=20,
+            isx_mc_low_bandpass_cutoff=0.004,
+            isx_mc_high_bandpass_cutoff=0.016,
+            isx_mc_roi=None,
+            isx_mc_reference_segment_index=0,
+            isx_mc_reference_frame_index=0,
+            isx_mc_global_registration_weight=1,
+            isx_mc_preserve_input_dimensions=False
     ):
         output_videos = []
         output_translations = []
@@ -120,10 +123,16 @@ class ISXModule():
 
         for input in inputs('videos-isxd'):
             input_path = input['value']
-            output_video_path = self._isx.make_output_file_path(input_path, output_dir, self.MOTION_CORRECTION_VIDEOS_SUFIX)
-            output_translations_path = self._isx.make_output_file_path(input_path, output_dir, self.MOTION_CORRECTION_VIDEOS_TRANSLATIONS_SUFIX, ext='csv')
-            output_crop_rect_path = self._isx.make_output_file_path(input_path, output_dir, f'{isx_mc_series_name}-{self.MOTION_CORRECTION_VIDEOS_CROP_RECT_SUFIX}', ext='csv')
-            output_mean_image_path = self._isx.make_output_file_path(input_path, output_dir, f'{isx_mc_series_name}-{self.MOTION_CORRECTION_VIDEOS_MEAN_IMAGES_SUFIX}')
+            output_video_path = self._isx.make_output_file_path(input_path, output_dir,
+                                                                self.MOTION_CORRECTION_VIDEOS_SUFIX)
+            output_translations_path = self._isx.make_output_file_path(input_path, output_dir,
+                                                                       self.MOTION_CORRECTION_VIDEOS_TRANSLATIONS_SUFIX,
+                                                                       ext='csv')
+            output_crop_rect_path = self._isx.make_output_file_path(input_path, output_dir,
+                                                                    f'{isx_mc_series_name}-{self.MOTION_CORRECTION_VIDEOS_CROP_RECT_SUFIX}',
+                                                                    ext='csv')
+            output_mean_image_path = self._isx.make_output_file_path(input_path, output_dir,
+                                                                     f'{isx_mc_series_name}-{self.MOTION_CORRECTION_VIDEOS_MEAN_IMAGES_SUFIX}')
 
             self._isx.project_movie(
                 input_movie_files=[input_path],
@@ -157,13 +166,13 @@ class ISXModule():
             'motion-correction-crop-rect': output_crop_rects,
             'motion-correction-mean-images': output_mean_images
         }
-    
+
     @step(NORMALIZE_DFF_VIDEOS_STEP)
     def normalize_dff_videos(
-        self,
-        inputs,
-        *,
-        isx_dff_f0_type='mean'
+            self,
+            inputs,
+            *,
+            isx_dff_f0_type='mean'
     ):
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.NORMALIZE_DFF_VIDEOS_STEP)
@@ -186,24 +195,25 @@ class ISXModule():
 
     @step(EXTRACT_NEURONS_PCA_ICA_STEP)
     def extract_neurons_pca_ica(
-        self,
-        inputs,
-        *,
-        isx_pca_ica_num_pcs=180,
-        isx_pca_ica_num_ics=120,
-        isx_pca_ica_unmix_type='spatial',
-        isx_pca_ica_max_iterations=100,
-        isx_pca_ica_convergence_threshold=0.00001,
-        isx_pca_ica_block_size=1000,
-        isx_pca_ica_auto_estimate_num_ics=False,
-        isx_pca_ica_average_cell_diameter=13,
+            self,
+            inputs,
+            *,
+            isx_pca_ica_num_pcs=180,
+            isx_pca_ica_num_ics=120,
+            isx_pca_ica_unmix_type='spatial',
+            isx_pca_ica_max_iterations=100,
+            isx_pca_ica_convergence_threshold=0.00001,
+            isx_pca_ica_block_size=1000,
+            isx_pca_ica_auto_estimate_num_ics=False,
+            isx_pca_ica_average_cell_diameter=13,
     ):
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.EXTRACT_NEURONS_PCA_ICA_STEP)
 
         for input in inputs('videos-isxd'):
             input_path = input['value']
-            output_path = self._isx.make_output_file_path(input_path, output_dir, self.EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFIX)
+            output_path = self._isx.make_output_file_path(input_path, output_dir,
+                                                          self.EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFIX)
 
             self._isx.pca_ica(
                 input_movie_files=[input_path],
@@ -223,17 +233,17 @@ class ISXModule():
         return {
             'cellsets-isxd': output
         }
-    
+
     @step(DETECT_EVENTS_IN_CELLS_STEP)
     def detect_events_in_cells(
-        self,
-        inputs,
-        *,
-        isx_ed_threshold=5,
-        isx_ed_tau=0.2,
-        isx_ed_event_time_ref='beginning',
-        isx_ed_ignore_negative_transients=True,
-        isx_ed_accepted_cells_only=False
+            self,
+            inputs,
+            *,
+            isx_ed_threshold=5,
+            isx_ed_tau=0.2,
+            isx_ed_event_time_ref='beginning',
+            isx_ed_ignore_negative_transients=True,
+            isx_ed_accepted_cells_only=False
     ):
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.DETECT_EVENTS_IN_CELLS_STEP)
@@ -257,13 +267,13 @@ class ISXModule():
         return {
             'events-isxd': output
         }
-    
+
     @step(AUTO_ACCEPT_REJECT_CELLS_STEP)
     def auto_accept_reject_cells(
-        self,
-        inputs,
-        *,
-        isx_acr_filters=None
+            self,
+            inputs,
+            *,
+            isx_acr_filters=None
     ):
         output = []
         self._ci_pipe.create_output_directory_for_next_step(self.AUTO_ACCEPT_REJECT_CELLS_STEP)
@@ -282,4 +292,50 @@ class ISXModule():
 
         return {
             'cellsets-isxd': output
+        }
+
+    @step(EXPORT_MOVIE_TO_TIFF_STEP)
+    def export_movie_to_tiff(
+            self,
+            inputs,
+            *,
+            write_invalid_frames=False
+    ):
+
+        output = []
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(self.EXPORT_MOVIE_TO_TIFF_STEP)
+
+        for video in inputs('videos-isxd'):
+            input_path = video['value']
+            output_path = self._isx.make_output_file_path(input_path, output_dir, '', ext='tiff')
+
+            self._isx.export_movie_to_tiff([input_path], output_path, write_invalid_frames=write_invalid_frames)
+
+            output.append({'ids': video['ids'], 'value': output_path})
+
+        return {
+            'videos-tiff': output
+        }
+
+    @step(EXPORT_MOVIE_TO_NWB_STEP)
+    def export_movie_to_nwb(
+            self,
+            inputs,
+            *,
+            write_invalid_frames=False
+    ):
+
+        output = []
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(self.EXPORT_MOVIE_TO_NWB_STEP)
+
+        for video in inputs('videos-isxd'):
+            input_path = video['value']
+            output_path = self._isx.make_output_file_path(input_path, output_dir, '', ext='nwb')
+
+            self._isx.export_movie_to_nwb([input_path], output_path, write_invalid_frames=write_invalid_frames)
+
+            output.append({'ids': video['ids'], 'value': output_path})
+
+        return {
+            'videos-nwb': output
         }
