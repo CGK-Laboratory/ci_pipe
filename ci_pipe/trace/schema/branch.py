@@ -6,15 +6,26 @@ from ci_pipe.step import Step
 class Branch:
     def __init__(self, name, steps):
         self._name = name
-        self._steps = list(steps) if steps is not None else []
+        self._steps = steps
 
     @classmethod
     def from_dict(cls, name, data):
         serialized_steps = data.get("steps", [])
-        return cls(name, list(serialized_steps))
+        steps = [Step.from_dict(serialized_step) for serialized_step in serialized_steps]
+        return cls(name, steps)
 
     def to_dict(self):
-        return {"steps": self._steps}
+        return {
+            "steps": [
+                {
+                    "index": index,
+                    "name": step.name(),
+                    "params": step.arguments(),
+                    "outputs": step.step_output(),
+                }
+                for index, step in enumerate(self._steps, start=1)
+            ]
+        }
 
     def add_steps(self, steps: List[Step]):
         self._steps.extend(steps)

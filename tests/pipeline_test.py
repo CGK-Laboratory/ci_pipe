@@ -328,6 +328,55 @@ class PipelineTestCase(CIPipeTestCase):
         self.assertEqual(pipeline._defaults.get('factor'), 10)
         self.assertEqual(pipeline._defaults.get('multiplier'), 2)
 
+    def test_25_a_pipeline_cannot_resume_execution_from_new_pipeline_without_the_same_trace_file_and_output_directory(self):
+        # Given
+        pipeline_input = {'numbers': [0]}
+        initial_output_directory = 'output'
+        pipeline = CIPipe(
+            pipeline_input,
+            file_system=self._file_system,
+            outputs_directory=initial_output_directory,)
+        pipeline.step("Add one", self.add_one)
+        new_output_directory = 'new_output'
+        new_pipeline = CIPipe(
+            pipeline_input,
+            file_system=self._file_system,
+            outputs_directory=new_output_directory,)
+
+        # When
+        with self.assertRaises(ValueError) as result:
+            new_pipeline.step("Add one", self.add_one)
+
+        # Then
+        error_message = result.exception.args[0]
+        self.assertEqual(error_message, CIPipe.RESUME_EXECUTION_ERROR_MESSAGE)
+
+    def test_26_a_pipeline_can_resume_execution_from_new_pipeline_with_same_trace_and_output_directory(self):
+        # Given
+        pipeline_input = {'numbers': [0]}
+        outputs_dir = 'output'
+        pipeline = CIPipe(
+            pipeline_input,
+            file_system=self._file_system,
+            outputs_directory=outputs_dir,)
+        pipeline.step("Add one", self.add_one)
+        initial_trace_content = pipeline.trace_as_json()
+
+        # When
+        resume_pipeline = CIPipe(
+            pipeline_input,
+            file_system=self._file_system,
+            outputs_directory=outputs_dir,)
+
+        resume_pipeline.step("Add one again", self.add_one)
+        final_trace_content = pipeline.trace_as_json()
+        output_after_new_step = resume_pipeline.output('numbers')
+
+        # Then
+        self.assertEqual(output_after_new_step[0]['value'], 2)
+        self.assertNotEqual(initial_trace_content, final_trace_content)
+
+
 
 if __name__ == '__main__':
     unittest.main()
