@@ -3,7 +3,7 @@ name: Test publish to TestPyPI
 on:
   push:
     branches:
-      - feat/pip-publish
+      - feat/pip-2
 
 jobs:
   publish-to-testpypi:
