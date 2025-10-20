@@ -1,6 +1,6 @@
 from typing import List
 
-from ci_pipe.step import Step
+from ...step import Step
 
 
 class Branch:

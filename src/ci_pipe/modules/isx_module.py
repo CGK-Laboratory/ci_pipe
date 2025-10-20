@@ -1,5 +1,5 @@
-from ci_pipe.decorators import step
-from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
+from ..decorators import step
+from ..errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
 
 
 

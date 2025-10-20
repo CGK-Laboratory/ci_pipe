@@ -1,8 +1,8 @@
 from typing import List
 
-from ci_pipe.step import Step
-from ci_pipe.trace.schema.branch import Branch
-from ci_pipe.trace.schema.pipeline import Pipeline
+from ..step import Step
+from .schema.branch import Branch
+from .schema.pipeline import Pipeline
 
 
 class CIPipeTrace:
