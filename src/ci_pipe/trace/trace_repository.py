@@ -1,6 +1,6 @@
 import json
 
-from .ci_pipe_trace import CIPipeTrace
+from ci_pipe.trace.ci_pipe_trace import CIPipeTrace
 
 
 class TraceRepository:
