@@ -33,7 +33,8 @@ class CIPipe:
         )
 
     def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
-                 file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None, validator=None):
+                 file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None,
+                 validator=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
         self._steps = steps or []

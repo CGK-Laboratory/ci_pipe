@@ -265,7 +265,7 @@ class PipelineTestCase(CIPipeTestCase):
     def test_18_set_defaults_from_kwargs_only(self):
         # Given
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system,)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, )
 
         # When
         pipeline.set_defaults(factor=3, multiplier=4)
@@ -277,7 +277,7 @@ class PipelineTestCase(CIPipeTestCase):
     def test_19_set_defaults_combined_file_and_kwargs(self):
         # Given
         pipeline_input = {'numbers': [{'ids': ['1'], 'value': 1}]}
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system,)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, )
 
         config_path = "config.yaml"
         self._file_system.write(config_path, "factor: 5\nmultiplier: 2")
@@ -322,7 +322,8 @@ class PipelineTestCase(CIPipeTestCase):
         self._file_system.write(config_path, "multiplier: 2")
 
         # When
-        pipeline = CIPipe(pipeline_input, file_system=self._file_system, defaults={'factor': 10},defaults_path=config_path)
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, defaults={'factor': 10},
+                          defaults_path=config_path)
 
         # Then
         self.assertEqual(pipeline._defaults.get('factor'), 10)

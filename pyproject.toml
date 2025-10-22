@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cipipeline"
+version = "0.1.0"
+description = "CIPipeline is a tool to analyze and process Calcium Imaging data."
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Gonzalez Agustín", email = "agngonzalez@fi.uba.ar" },
+    { name = "Loyarte Iván", email = "iloyarte@fi.uba.ar" },
+    { name = "Rueda Nazarena", email = "nrueda@fi.uba.ar" },
+    { name = "Singer Joaquín", email = "josinger@fi.uba.ar" }
+]
+dependencies = [
+    "rich>=13.7.0",
+    "PyYAML>=6.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/CGK-Laboratory/ci_pipe"
+Repository = "https://github.com/CGK-Laboratory/ci_pipe"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+[tool.bumpver]
+current_version = "2025.1001-alpha"
+version_pattern = "YYYY.BUILD[-TAG]"
+commit_message = "bump version {old_version} -> {new_version}"
+tag_message = "{new_version}"
+tag_scope = "default"
+pre_commit_hook = ""
+post_commit_hook = ""
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
+

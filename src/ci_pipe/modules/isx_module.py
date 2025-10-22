@@ -2,7 +2,6 @@ from ci_pipe.decorators import step
 from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
 
 
-
 class ISXModule:
     # TODO: Consider moving these constants to a different config file
     PREPROCESS_VIDEOS_STEP = "ISX Preprocess Videos"
