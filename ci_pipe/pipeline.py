@@ -3,6 +3,7 @@ import inspect
 
 from ci_pipe.errors.defaults_after_step_error import DefaultsAfterStepsError
 from ci_pipe.errors.output_key_not_found_error import OutputKeyNotFoundError
+from ci_pipe.errors.resume_execution_error import ResumeExecutionError
 from ci_pipe.modules.isx_module import ISXModule
 from ci_pipe.step import Step
 from ci_pipe.trace.schema.branch import Branch
@@ -12,8 +13,6 @@ from external_dependencies.file_system.persistent_file_system import PersistentF
 
 
 class CIPipe:
-    RESUME_EXECUTION_ERROR_MESSAGE = "Cannot resume execution without the same trace file and output directory"
-
     @classmethod
     def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
                                    steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
@@ -211,7 +210,7 @@ class CIPipe:
             return
 
         if not self._is_same_trace_file() or not self._is_same_output_directory():
-            raise ValueError(self.RESUME_EXECUTION_ERROR_MESSAGE)
+            raise ResumeExecutionError()
 
     def _can_pipeline_attempt_to_resume_execution(self):
         # Restore only if this in-memory pipeline has no steps

@@ -2,6 +2,7 @@ import unittest
 
 from ci_pipe.errors.defaults_after_step_error import DefaultsAfterStepsError
 from ci_pipe.errors.output_key_not_found_error import OutputKeyNotFoundError
+from ci_pipe.errors.resume_execution_error import ResumeExecutionError
 from ci_pipe.pipeline import CIPipe
 from tests.ci_pipe_test_case import CIPipeTestCase
 
@@ -343,13 +344,10 @@ class PipelineTestCase(CIPipeTestCase):
             file_system=self._file_system,
             outputs_directory=new_output_directory,)
 
-        # When
-        with self.assertRaises(ValueError) as result:
+        # When / Then
+        with self.assertRaises(ResumeExecutionError):
             new_pipeline.step("Add one", self.add_one)
 
-        # Then
-        error_message = result.exception.args[0]
-        self.assertEqual(error_message, CIPipe.RESUME_EXECUTION_ERROR_MESSAGE)
 
     def test_26_a_pipeline_can_resume_execution_from_new_pipeline_with_same_trace_and_output_directory(self):
         # Given
