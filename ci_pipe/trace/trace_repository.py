@@ -29,7 +29,3 @@ class TraceRepository:
             return True
         data_as_json = self.load().to_dict()
         return self._validator.validate(data_as_json)
-
-    def contains(self, data):
-        current_trace_data_as_json = self.load().to_dict()
-        return data in current_trace_data_as_json
