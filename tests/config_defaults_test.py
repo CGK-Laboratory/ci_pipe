@@ -1,10 +1,7 @@
 import unittest
-import tempfile
-import os
 import yaml
 
 from ci_pipe.utils.config_defaults import ConfigDefaults
-from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
 from tests.ci_pipe_test_case import CIPipeTestCase
 
 

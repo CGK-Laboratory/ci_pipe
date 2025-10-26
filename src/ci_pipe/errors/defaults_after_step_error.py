@@ -1,4 +1,4 @@
-from ci_pipe.errors.ci_pipe_error import CIPipeError
+from .ci_pipe_error import CIPipeError
 
 
 class DefaultsAfterStepsError(CIPipeError):
