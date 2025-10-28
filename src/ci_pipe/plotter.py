@@ -4,42 +4,43 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from ci_pipe.step import Step
+
 
 class Plotter:
     def __init__(self, console=None):
         self.console = console or Console()
 
     def get_step_info(self, trace, step_number, branch, show_parameters=True):
-        step = self._get_step(trace, step_number, branch)
+        step = self._step_from(trace, step_number, branch)
         if not step:
             return
-
-        table = self._build_table(step, show_parameters)
+        table = self._build_table_from(step, step_number, show_parameters)
         self.console.print(table)
 
-    def _get_step(self, trace, step_number, branch_name):
+    def _step_from(self, trace, step_number, branch_name):
         try:
             steps = trace.steps_from(branch_name)
         except KeyError:
             self.console.print(f"[bold red]Branch '{branch_name}' not found in trace[/bold red]")
             return None
 
-        for step in steps:
-            if step["index"] == step_number:
+        for index, step in enumerate(steps, start=1):
+            if index == step_number:
                 return step
 
         self.console.print(f"[bold red]Step {step_number} not found in branch '{branch_name}'[/bold red]")
         return None
 
-    def _build_table(self, step, show_parameters):
-        table = Table(title=f"Step {step['index']} - {step['name']}", show_lines=True)
+    def _build_table_from(self, step: Step, step_number, show_parameters):
+        table = Table(title=f"Step {step_number} - {step.name()}", show_lines=True)
         table.add_column("Field", style="cyan", no_wrap=True)
         table.add_column("Value", style="yellow")
 
-        params = step.get("params", {})
-        outputs = step.get("outputs", {})
+        params = step.arguments()
+        outputs =step.output()
 
-        table.add_row("Name", step.get("name", ""))
+        table.add_row("Name", step.name())
         if show_parameters and params:
             params_str = "\n".join(f"{k}: {v}" for k, v in params.items())
             table.add_row("Parameters", params_str)
@@ -68,11 +69,11 @@ class Plotter:
     def _build_trace_panels(self, steps):
         panels = [
             Panel(
-                f"[bold]{step['index']}.[/bold] {step['name']}\n"
-                f"Params: {', '.join(step['params'].keys()) or 'None'}",
+                f"[bold]{index}.[/bold] {step.name()}\n"
+                f"Params: {', '.join(step.arguments()) or 'None'}",
                 padding=(1, 2),
             )
-            for step in steps
+            for index, step in enumerate(steps, start=1)
         ]
 
         items = []

@@ -31,7 +31,7 @@ class CIPipeTrace:
     def add_branch(self, branch: Branch):
         self._branches[branch.name()] = branch
 
-    def add_steps(self, steps: List[Step], branch_name):
+    def add_steps(self, steps, branch_name):
         if branch_name not in self._branches:
             self._branches[branch_name] = Branch(branch_name, [])
         self._branches[branch_name].add_steps(steps)
@@ -44,3 +44,7 @@ class CIPipeTrace:
         if branch:
             return branch.steps()
         return []
+
+    def has_empty_steps_for(self, branch_name):
+        steps = self.steps_from(branch_name)
+        return len(steps) == 0

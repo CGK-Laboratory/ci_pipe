@@ -3,6 +3,7 @@ import inspect
 
 from ci_pipe.errors.defaults_after_step_error import DefaultsAfterStepsError
 from ci_pipe.errors.output_key_not_found_error import OutputKeyNotFoundError
+from ci_pipe.errors.resume_execution_error import ResumeExecutionError
 from ci_pipe.modules.isx_module import ISXModule
 from ci_pipe.step import Step
 from ci_pipe.trace.schema.branch import Branch
@@ -12,8 +13,6 @@ from external_dependencies.file_system.persistent_file_system import PersistentF
 
 
 class CIPipe:
-    RESUME_EXECUTION_ERROR_MESSAGE = "Cannot resume execution without the same trace file and output directory"
-
     @classmethod
     def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
                                    steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
@@ -42,11 +41,12 @@ class CIPipe:
         self._branch_name = branch_name
         self._outputs_directory = outputs_directory
         self._file_system = file_system
-        self._trace_repository = TraceRepository(self._file_system, "trace.json",
-                                                 validator)
+        self._trace_repository = TraceRepository(
+            self._file_system, "trace.json", validator)
         self._trace = self._trace_repository.load()
         self._plotter = plotter
         self._isx = isx
+
         self._load_combined_defaults(defaults, defaults_path)
         self._build_initial_trace()
 
@@ -61,10 +61,12 @@ class CIPipe:
         raise OutputKeyNotFoundError(key)
 
     def step(self, step_name, step_function, *args, **kwargs):
+        self._assert_pipeline_can_resume_execution()
+        self._restore_previous_steps_from_trace_if_applicable()
         self._populate_default_params(step_function, kwargs)
         new_step = Step(step_name, self.output, step_function, args, kwargs)
         self._steps.append(new_step)
-        self._update_trace_if_trace_builder_provided()
+        self._update_trace_if_available()
         return self
 
     def info(self, step_number):
@@ -72,6 +74,9 @@ class CIPipe:
 
     def trace(self):
         self._plotter.get_all_trace_from_branch(self._trace_repository.load(), self._branch_name)
+
+    def trace_as_json(self):
+        return self._trace_repository.load().to_dict()
 
     def branch(self, branch_name):
         new_pipe = CIPipe(
@@ -81,7 +86,9 @@ class CIPipe:
             file_system=self._file_system,
             defaults=self._defaults.copy(),
             plotter=self._plotter,
-            isx=self._isx, )
+            isx=self._isx,
+        )
+
         return new_pipe
 
     def set_defaults(self, defaults_path=None, **defaults):
@@ -182,27 +189,65 @@ class CIPipe:
 
         self._trace_repository.save(self._trace)
 
-    def _update_trace_if_trace_builder_provided(self):
+    def _update_trace_if_available(self):
         if not self._trace:
             return
 
-        steps_snapshot = []
-        for idx, step in enumerate(self._steps, 1):
-            steps_snapshot.append({
-                "index": idx,
-                "name": step.name(),
-                "params": step.arguments(),
-                "outputs": step.step_output()
-            })
-
         branch = self._trace.branch_from(self._branch_name)
         if branch is None:
-            branch = Branch(self._branch_name, steps_snapshot)
+            branch = Branch(self._branch_name, self._steps)
             self._trace.add_branch(branch)
-        else:
-            self._trace.add_steps(steps_snapshot, branch.name())
+
+        amount_of_steps_in_branch = len(branch.steps())
+        amount_of_steps_in_pipeline = len(self._steps)
+        if amount_of_steps_in_branch < amount_of_steps_in_pipeline:
+            self._trace.add_steps(self._steps[amount_of_steps_in_branch:], branch.name())
 
         self._trace_repository.save(self._trace)
+
+    def _assert_pipeline_can_resume_execution(self):
+        if not self._trace_repository.exists() or self._trace.has_empty_steps_for(self._branch_name):
+            return
+
+        if not self._is_same_trace_file() or not self._is_same_output_directory():
+            raise ResumeExecutionError()
+
+    def _can_pipeline_attempt_to_resume_execution(self):
+        # Restore only if this in-memory pipeline has no steps
+        # and the trace for this branch already contains steps.
+        if self._steps:  # already have steps in memory
+            return False
+        branch = self._trace.branch_from(self._branch_name)
+        return branch is not None and not self._trace.has_empty_steps_for(branch.name())
+
+
+    def _is_same_trace_file(self):
+        # With the current design this repo always points to the same file name ("trace.json"),
+        # so "same file" reduces to "the file exists".
+        return self._trace_repository.exists()
+
+
+    def _is_same_output_directory(self):
+        current_output_directory = self._trace.to_dict()['pipeline']['outputs_directory']
+        return current_output_directory == self._outputs_directory
+
+    def _restore_previous_steps_from_trace_if_applicable(self):
+        if not self._can_pipeline_attempt_to_resume_execution():
+            return
+
+        trace_content = self.trace_as_json()
+        steps = trace_content[self._branch_name]['steps']
+
+        for step in steps:
+            # build a Step in a non-executing way and preload outputs
+            restored_steps = Step.restored_from_trace(
+                name=step['name'],
+                outputs=step['outputs'],
+                params=step['params']
+            )
+            self._steps.append(restored_steps)
+
+
 
     def _inputs_with_ids(self, inputs):
         inputs_with_ids = {}
