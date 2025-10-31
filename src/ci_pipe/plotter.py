@@ -3,13 +3,14 @@ import json
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-
+import io
+from rich.console import Console
 from ci_pipe.step import Step
 
 
 class Plotter:
     def __init__(self, console=None):
-        self.console = console or Console()
+        self.console = console or Console(file=io.StringIO(), force_terminal=True)
 
     def get_step_info(self, trace, step_number, branch, show_parameters=True):
         step = self._step_from(trace, step_number, branch)
