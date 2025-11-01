@@ -10,15 +10,17 @@ from ci_pipe.trace.schema.branch import Branch
 from ci_pipe.trace.trace_repository import TraceRepository
 from ci_pipe.utils.config_defaults import ConfigDefaults
 from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
+from ci_pipe.plotter import Plotter
 
 
 class CIPipe:
     @classmethod
     def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
                                    steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
-                                   plotter=None, isx=None):
+                                   isx=None):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
+
         return cls(
             inputs,
             branch_name=branch_name,
@@ -27,12 +29,11 @@ class CIPipe:
             file_system=file_system,
             defaults=defaults,
             defaults_path=defaults_path,
-            plotter=plotter,
             isx=isx,
         )
 
     def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
-                 file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None,
+                 file_system=PersistentFileSystem(), defaults=None, defaults_path=None, isx=None,
                  validator=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
@@ -44,7 +45,7 @@ class CIPipe:
         self._trace_repository = TraceRepository(
             self._file_system, "trace.json", validator)
         self._trace = self._trace_repository.load()
-        self._plotter = plotter
+        self._plotter = Plotter()
         self._isx = isx
 
         self._load_combined_defaults(defaults, defaults_path)
@@ -85,7 +86,6 @@ class CIPipe:
             steps=self._steps.copy(),
             file_system=self._file_system,
             defaults=self._defaults.copy(),
-            plotter=self._plotter,
             isx=self._isx,
         )
 
