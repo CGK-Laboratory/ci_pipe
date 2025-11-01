@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version_type:
-        description: "Select the version type to bump"
+        description: "Select the type of version you want to release"
         required: true
         type: choice
         default: "patch"
@@ -19,7 +19,7 @@ jobs:
     environment: Publish
 
     permissions:
-      contents: write   # allows pushing tags and commits
+      contents: write
       id-token: write
 
     steps:
