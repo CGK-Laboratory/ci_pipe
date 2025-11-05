@@ -17,7 +17,7 @@ class CIPipe:
     @classmethod
     def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
                                    steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
-                                   plotter=None, isx=None,):
+                                   plotter=None, isx=None, caiman=None):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
         return cls(
@@ -30,26 +30,8 @@ class CIPipe:
             defaults_path=defaults_path,
             plotter=plotter,
             isx=isx,
-        )
-
-    @classmethod
-    def new_with_caiman(cls, input, branch_name='Main Branch', outputs_directory='output',
-                        steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
-                        plotter=None, caiman=None):
-        files = file_system.listdir(input)
-        inputs = cls._video_inputs_with_extension(files)
-        return cls(
-            inputs,
-            branch_name=branch_name,
-            outputs_directory=outputs_directory,
-            steps=steps,
-            file_system=file_system,
-            defaults=defaults,
-            defaults_path=defaults_path,
-            plotter=plotter,
             caiman=caiman,
         )
-
 
     def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
                  file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None,
