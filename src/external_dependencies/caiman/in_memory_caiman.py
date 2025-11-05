@@ -1,12 +1,12 @@
 class MockedMotionCorrect:
-    def __init__(self, filenames, file_system=None):
+    def __init__(self, executed_steps, file_system=None, **motion_params):
         self._file_system = file_system
-        self._filenames = filenames
+        self._executed_steps = executed_steps
 
-    def motion_correct(self,):
-        for file_name in self._filenames:
-            print("FILE: ", self._file_system.read(file_name))
-            self._file_system.write(file_name, "")
+    def motion_correct(self, **motion_kwargs):
+        for step_data in self._executed_steps:
+            output = step_data["value"]
+            self._file_system.write(output, "")
 
 class MockedCNMFParams:
     def __init__(self, params_dict, file_system=None):
@@ -29,8 +29,8 @@ class InMemoryCaiman:
     def __init__(self, file_system=None):
         self._file_system = file_system
 
-    def MotionCorrect(self, file_name):
-        return MockedMotionCorrect(file_name, self._file_system)
+    def MotionCorrect(self, executed_steps, **motion_kwargs):
+        return MockedMotionCorrect(executed_steps, self._file_system, **motion_kwargs)
 
     def CNMFParams(self, params_dict):
         return MockedCNMFParams(params_dict, self._file_system)

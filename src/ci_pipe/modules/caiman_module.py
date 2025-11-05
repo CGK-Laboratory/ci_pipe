@@ -15,9 +15,9 @@ class CaimanModule:
     def motion_correction(self, inputs,):
         path_to_videos_to_process = inputs('videos-tiff')
         print("VIDEOS TO PROCESS: ", path_to_videos_to_process)
-        motion_correct_handler = self._caiman.MotionCorrect(file_name=path_to_videos_to_process, )
         parameters = self._xxx_params(path_to_videos_to_process)
-        path_to_corrected_videos = motion_correct_handler.motion_correct(path_to_videos_to_process, **parameters.motion,)
+        motion_correct_handler = self._caiman.MotionCorrect(executed_steps=path_to_videos_to_process, **parameters.motion)
+        path_to_corrected_videos = motion_correct_handler.motion_correct()
         return {"movies-caiman": path_to_corrected_videos}
 
     def _xxx_params(self, movie_path,):
