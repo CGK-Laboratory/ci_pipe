@@ -266,14 +266,13 @@ class ISXTestCase(CIPipeTestCase):
 
     def test_11_a_pipeline_with_isx_can_run_isx_longitudinal_registration(self):
         # Given
-        file_system = InMemoryFileSystem()
-        file_system.makedirs('input_dir')
-        file_system.write('input_dir/file1.isxd', '')
-        file_system.write('input_dir/file2.isxd', '')
+        self._file_system.makedirs('input_dir')
+        self._file_system.write('input_dir/file1.isxd', '')
+        self._file_system.write('input_dir/file2.isxd', '')
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system, isx=InMemoryISX(self._file_system))
         pipeline.isx.extract_neurons_pca_ica()
         pipeline.isx.detect_events_in_cells()
         pipeline.isx.longitudinal_registration()
@@ -286,7 +285,7 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/file1-LR.isxd',
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/file2-LR.isxd',
             ],
-            file_system,
+            self._file_system,
         )
         self._assert_output_files(
             pipeline,
@@ -295,7 +294,7 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/file1-PCA-ICA-LR.isxd',
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/file2-PCA-ICA-LR.isxd',
             ],
-            file_system,
+            self._file_system,
         )
         self._assert_output_files(
             pipeline,
@@ -303,7 +302,7 @@ class ISXTestCase(CIPipeTestCase):
             [
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/LR-correspondences-table.csv',
             ],
-            file_system,
+            self._file_system,
         )
         self._assert_output_files(
             pipeline,
@@ -311,7 +310,7 @@ class ISXTestCase(CIPipeTestCase):
             [
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/LR-crop-rect.csv',
             ],
-            file_system,
+            self._file_system,
         )
         self._assert_output_files(
             pipeline,
@@ -319,19 +318,18 @@ class ISXTestCase(CIPipeTestCase):
             [
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/LR-transform.csv',
             ],
-            file_system,
+            self._file_system,
         )
 
     def test_12_a_pipeline_with_isx_can_run_isx_longitudinal_registration_with_num_cells_desc_as_reference_selection(self):
         # Given
-        file_system = InMemoryFileSystem()
-        file_system.makedirs('input_dir')
-        file_system.write('input_dir/file1.isxd', '')
-        file_system.write('input_dir/file2.isxd', '')
+        self._file_system.makedirs('input_dir')
+        self._file_system.write('input_dir/file1.isxd', '')
+        self._file_system.write('input_dir/file2.isxd', '')
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=file_system, isx=InMemoryISX(file_system))
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system, isx=InMemoryISX(self._file_system))
         pipeline.isx.extract_neurons_pca_ica()
         pipeline.isx.detect_events_in_cells()
         pipeline.isx.longitudinal_registration(isx_lr_reference_selection_strategy='by_num_cells_desc')
@@ -344,7 +342,7 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/file1-LR.isxd',
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/file2-LR.isxd',
             ],
-            file_system,
+            self._file_system,
         )
         self._assert_output_files(
             pipeline,
@@ -353,7 +351,7 @@ class ISXTestCase(CIPipeTestCase):
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/file1-PCA-ICA-LR.isxd',
                 'output/Main Branch - Step 3 - ISX Longitudinal Registration/file2-PCA-ICA-LR.isxd',
             ],
-            file_system,
+            self._file_system,
         )
 
     def _assert_output_files(self, pipeline, key, expected_paths, file_system):
