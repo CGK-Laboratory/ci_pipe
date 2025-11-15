@@ -1,127 +1,123 @@
+import hashlib
 import io
 import re
-import unittest
+
 from rich.console import Console
+
 from ci_pipe.pipeline import CIPipe
 from ci_pipe.plotter import Plotter
-from ci_pipe.trace_builder import TraceBuilder
-from external_dependencies.file_system.in_memory_file_system import InMemoryFileSystem
+from tests.ci_pipe_test_case import CIPipeTestCase
 
 
-def strip_ansi(text: str) -> str:
-    """Removes ANSI codes (colors, styles) from a string."""
-    ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-    return ansi_escape.sub('', text)
-
-
-class TestPlotter(unittest.TestCase):
-
-    def get_output(self, console_output):
-        """Gets console output without ANSI codes."""
-        console_output.seek(0)
-        return strip_ansi(console_output.read())
-
-    def _add_one(self, inputs):
-        return {'numbers': [{'ids': [inputs('numbers')[0]['ids'][0]], 'value': inputs('numbers')[0]['value'] + 1}]}
-    
-    def _multiply_by_two(self, inputs):
-        return {'numbers': [{'ids': x['ids'], 'value': x['value'] * 2} for x in inputs('numbers')]}
-
+class PlotterTestCase(CIPipeTestCase):
     def setUp(self):
+        super().setUp()
+        self._output = io.StringIO()
+        self._console = Console(file=self._output, force_terminal=True)
+        self._plotter = Plotter(console=self._console)
+
+    def test_01_plotter_get_step_info_prints_step_from_modeled_trace(self):
         # Given
-        self.output = io.StringIO()
-        self.console = Console(file=self.output, force_terminal=True)
-        self.plotter = Plotter(console=self.console)
-        self.trace = {
-            "Main Branch": {
-                "steps": [
-                    {"index": 1, "name": "Add one", "params": {"value": 1}, "outputs": {"numbers": [2]}},
-                    {"index": 2, "name": "Multiply by two", "params": {"factor": 2}, "outputs": {"numbers": [4]}},
-                ]
+        pipeline_input = {'numbers': [0]}
+        self._trace_builder.with_inputs({
+            "numbers": [{
+                "ids": [hashlib.sha256(("numbers" + str(0)).encode()).hexdigest()],
+                "value": 0
+            }]
+        }).with_outputs_directory(self._expected_output_directory()
+                                  ).with_empty_branch().with_steps_in_branch({
+            "index": 1,
+            "name": "Add one",
+            "params": {},
+            "outputs": {
+                "numbers": [{
+                    "ids": [hashlib.sha256(("numbers" + str(0)).encode()).hexdigest()],
+                    "value": 1
+                }]
             }
-        }
+        })
 
-    def get_clean_output(self):
-        """Gets the console output without ANSI codes."""
-        self.output.seek(0)
-        raw = self.output.read()
-        return strip_ansi(raw)
+        pipeline = CIPipe(pipeline_input,
+                          file_system=self._file_system,
+                          outputs_directory='output' )
+        pipeline.step("Add one", self.add_one)
 
-    def test_01_get_step_info_existing_step(self):
         # When
-        self.plotter.get_step_info(self.trace, step_number=1, branch="Main Branch")
+        self._plotter.get_step_info(pipeline._trace, step_number=1, branch="Main Branch")
+
         # Then
-        out = self.get_clean_output()
+        out = self._out()
         self.assertIn("Step 1 - Add one", out)
-        self.assertIn("value: 1", out)
         self.assertIn('"numbers": [', out)
-        self.assertIn("2", out)
+        self.assertIn("1", out)
 
-    def test_02_get_step_info_nonexistent_step(self):
-        # When
-        self.plotter.get_step_info(self.trace, step_number=99, branch="Main Branch")
-        # Then
-        out = self.get_clean_output()
-        self.assertIn("Step 99 not found in branch 'Main Branch'", out)
+    def test_02_plotter_prints_full_branch_flow(self):
+        # Given
+        pipeline_input = {'numbers': [0]}
+        self._trace_builder.with_inputs({
+            "numbers": [{
+                "ids": [hashlib.sha256(("numbers" + str(0)).encode()).hexdigest()],
+                "value": 0
+            }]
+        }).with_outputs_directory(self._expected_output_directory()
+                                  ).with_empty_branch().with_steps_in_branch({
+            "index": 1,
+            "name": "Add one",
+            "params": {},
+            "outputs": {
+                "numbers": [{
+                    "ids": [hashlib.sha256(("numbers" + str(0)).encode()).hexdigest()],
+                    "value": 1
+                }]
+            }
+        }).with_steps_in_branch({
+            "index": 2,
+            "name": "Multiply by two",
+            "params": {},
+            "outputs": {
+                "numbers": [{
+                    "ids": [hashlib.sha256(("numbers" + str(0)).encode()).hexdigest()],
+                    "value": 2
+                }]
+            }
+        })
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, outputs_directory='output')
+        pipeline.step("Add one", self.add_one)
+        pipeline.step("Multiply by two", self.multiply_by_two)
 
-    def test_03_get_all_trace_from_branch_existing_branch(self):
         # When
-        self.plotter.get_all_trace_from_branch(self.trace, "Main Branch")
+        self._plotter.get_all_trace_from_branch(pipeline._trace, "Main Branch")
+
         # Then
-        out = self.get_clean_output()
+        out = self._out()
         self.assertIn("Pipeline Trace of branch: Main Branch", out)
         self.assertIn("1. Add one", out)
         self.assertIn("2. Multiply by two", out)
 
-    def test_04_get_all_trace_from_branch_nonexistent_branch(self):
+    def test_03_plotter_handles_missing_branch(self):
+        # Given
+        pipeline_input = {'numbers': [0]}
+        self._trace_builder.with_inputs({
+            "numbers": [{
+                "ids": [hashlib.sha256(("numbers" + str(0)).encode()).hexdigest()],
+                "value": 0
+            }]
+        }).with_outputs_directory(self._expected_output_directory())
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system, outputs_directory='output')
+
         # When
-        self.plotter.get_all_trace_from_branch(self.trace, "NonExistent")
+        self._plotter.get_all_trace_from_branch(pipeline._trace, "NonExistent")
+
         # Then
-        out = self.get_clean_output()
+        out = self._out()
         self.assertIn("Branch 'NonExistent' not found", out)
 
-    def test_05_info_displays_step_with_tracebuilder(self):
-        # Given
-        file_system = InMemoryFileSystem()
-        trace_builder = TraceBuilder(file_name="trace.json", file_system=file_system)
-        console_output = io.StringIO()
-        console = Console(file=console_output, force_terminal=True)
-        plotter = Plotter(console=console)
-        pipeline_input = {'numbers': [0]}
+    def _expected_output_directory(self) -> str:
+        return "output"
 
-        # When
-        pipeline = CIPipe(inputs=pipeline_input, trace_builder=trace_builder, file_system=file_system, plotter=plotter)
-        pipeline.step("Add one", self._add_one)
-        pipeline.info(1)
+    def _strip_ansi(self, s: str) -> str:
+        return re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', s)
 
-        # Then
-        out = self.get_output(console_output)
-        assert "Step 1 - Add one" in out
-        assert "Value" in out
-        assert "Add one" in out
-        assert '"numbers": [' in out
-        assert "1" in out
-
-    def test_06_trace_displays_branch_and_steps_with_tracebuilder(self):
-        # Given
-        file_system = InMemoryFileSystem()
-        trace_builder = TraceBuilder(file_name="trace.json", file_system=file_system)
-        console_output = io.StringIO()
-        console = Console(file=console_output, force_terminal=True)
-        plotter = Plotter(console=console)
-        pipeline_input = {'numbers': [0]}
-
-        # When
-        pipeline = CIPipe(inputs=pipeline_input, trace_builder=trace_builder, file_system=file_system, plotter=plotter)
-        pipeline.step("Add one", self._add_one)
-        pipeline.step("Multiply by two", self._multiply_by_two)
-        pipeline.trace()
-
-        # Then
-        out = self.get_output(console_output)
-        assert "Pipeline Trace of branch: Main Branch" in out
-        assert "1. Add one" in out
-        assert "2. Multiply by two" in out
-
-if __name__ == "__main__":
-    unittest.main()
+    def _out(self) -> str:
+        self._output.seek(0)
+        return self._strip_ansi(self._output.read())

@@ -1,7 +1,8 @@
 from ci_pipe.decorators import step
+from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
 
 
-class ISXModule():
+class ISXModule:
     # TODO: Consider moving these constants to a different config file
     PREPROCESS_VIDEOS_STEP = "ISX Preprocess Videos"
     BANDPASS_FILTER_VIDEOS_STEP = "ISX Bandpass Filter Videos"
@@ -29,7 +30,7 @@ class ISXModule():
 
     def __init__(self, isx, ci_pipe):
         if isx is None:
-            raise RuntimeError("CIPipe 'isx' attribute was not provided. Cannot use an ISX step.")
+            raise ISXBackendNotConfiguredError()
         self._isx = isx
         self._ci_pipe = ci_pipe
 

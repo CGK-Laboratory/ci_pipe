@@ -1,10 +1,15 @@
 import functools
 import inspect
 from inspect import Parameter, Signature
-from typing import TypeVar, Callable, Protocol, ParamSpec, Any, TYPE_CHECKING
+from typing import TypeVar, Callable, Protocol, Any, TYPE_CHECKING
+
+try:
+    from typing import ParamSpec
+except ImportError:
+    from typing_extensions import ParamSpec
 
 if TYPE_CHECKING:
-    from ci_pipe.pipeline import CIPipe
+    from .pipeline import CIPipe
 
 T_Pipeline = TypeVar("T_Pipeline", bound="CIPipe")
 P = ParamSpec("P")
