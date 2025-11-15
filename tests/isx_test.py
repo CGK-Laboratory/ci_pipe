@@ -285,8 +285,8 @@ class ISXTestCase(unittest.TestCase):
             pipeline,
             'cellsets-isxd',
             [
-                'output/Main Branch - Step 3 - ISX Longitudinal Registration/file1-PCA-ICA-LR.csv',
-                'output/Main Branch - Step 3 - ISX Longitudinal Registration/file2-PCA-ICA-LR.csv',
+                'output/Main Branch - Step 3 - ISX Longitudinal Registration/file1-PCA-ICA-LR.isxd',
+                'output/Main Branch - Step 3 - ISX Longitudinal Registration/file2-PCA-ICA-LR.isxd',
             ],
             file_system,
         )
@@ -343,8 +343,8 @@ class ISXTestCase(unittest.TestCase):
             pipeline,
             'cellsets-isxd',
             [
-                'output/Main Branch - Step 3 - ISX Longitudinal Registration/file1-PCA-ICA-LR.csv',
-                'output/Main Branch - Step 3 - ISX Longitudinal Registration/file2-PCA-ICA-LR.csv',
+                'output/Main Branch - Step 3 - ISX Longitudinal Registration/file1-PCA-ICA-LR.isxd',
+                'output/Main Branch - Step 3 - ISX Longitudinal Registration/file2-PCA-ICA-LR.isxd',
             ],
             file_system,
         )
