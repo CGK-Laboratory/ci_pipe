@@ -367,7 +367,7 @@ class ISXModule():
         all_ids = list(set(id for input in inputs('videos-isxd') for id in input['ids']))
 
         self._load_outputs_and_paths_from_inputs(inputs('videos-isxd'), output_dir, 'isxd', output_videos, input_video_paths, output_video_paths)
-        self._load_outputs_and_paths_from_inputs(inputs('cellsets-isxd'), output_dir, 'csv', output_cellsets, input_cellset_paths, output_cellset_paths)
+        self._load_outputs_and_paths_from_inputs(inputs('cellsets-isxd'), output_dir, 'isxd', output_cellsets, input_cellset_paths, output_cellset_paths)
 
         # TODO: Throw error if strategy name is invalid, consider using enum
         if isx_lr_reference_selection_strategy is not None and isx_lr_reference_selection_strategy in self._lr_reference_selection_strategies:
@@ -401,8 +401,7 @@ class ISXModule():
             'longitudinal-registration-transform': [{'ids': all_ids, 'value': output_transform_path}]
         }
 
-
-    # LR reference selection
+    # LR reference selection    
 
     def _lr_by_num_cells_desc(self, input_cellsets):
         cell_counts = [self._isx.CellSet.read(path).num_cells for path in input_cellsets]
