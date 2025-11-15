@@ -16,7 +16,7 @@ from ci_pipe.plotter import Plotter
 class CIPipe:
     @classmethod
     def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
-                                   steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
+                                   trace_path="trace.json", file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
                                    isx=None):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
@@ -25,14 +25,14 @@ class CIPipe:
             inputs,
             branch_name=branch_name,
             outputs_directory=outputs_directory,
-            steps=steps,
+            trace_path=trace_path,
             file_system=file_system,
             defaults=defaults,
             defaults_path=defaults_path,
             isx=isx,
         )
 
-    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
+    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', trace_path="trace.json", steps=None,
                  file_system=PersistentFileSystem(), defaults=None, defaults_path=None, isx=None,
                  validator=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
@@ -43,7 +43,7 @@ class CIPipe:
         self._outputs_directory = outputs_directory
         self._file_system = file_system
         self._trace_repository = TraceRepository(
-            self._file_system, "trace.json", validator)
+            self._file_system, trace_path, validator)
         self._trace = self._trace_repository.load()
         self._plotter = Plotter()
         self._isx = isx
