@@ -4,6 +4,7 @@ from ci_pipe.errors.caiman_backend_not_configured_error import CaimanBackendNotC
 
 class CaimanModule:
     MOTION_CORRECTION_STEP = "Caiman Motion Correction"
+    MOTION_CORRECTION_VIDEOS_SUFFIX = "MC"
 
     def __init__(self, caiman, ci_pipe):
         if caiman is None:
@@ -12,44 +13,41 @@ class CaimanModule:
         self._ci_pipe = ci_pipe
 
     @step(MOTION_CORRECTION_STEP)
-    def motion_correction(self, inputs,):
-        path_to_videos_to_process = inputs('videos-tiff')
-        print("VIDEOS TO PROCESS: ", path_to_videos_to_process)
-        parameters = self._xxx_params(path_to_videos_to_process)
-        motion_correct_handler = self._caiman.MotionCorrect(executed_steps=path_to_videos_to_process, **parameters.motion)
-        path_to_corrected_videos = motion_correct_handler.motion_correct()
-        return {"movies-caiman": path_to_corrected_videos}
+    def motion_correction(
+            self,
+            inputs,
+            *,
+            caiman_strides=(48, 48),
+            caiman_overlaps=(24, 24),
+            caiman_max_shifts=(6, 6),
+            caiman_max_deviation_rigid=3,
+            caiman_pw_rigid=True,
+            caiman_shifts_opencv=True,
+            caiman_border_nan='copy'
+    ):
+        # TODO: Think if we should grab all potential extensions accepted by motion correction
+        paths_of_videos_to_process = inputs('videos-tiff')
+        print("VIDEOS-TIFF: ", paths_of_videos_to_process)
+        parameters_dictionary = {
+            'fnames': paths_of_videos_to_process,
+            'strides': caiman_strides,
+            'overlaps': caiman_overlaps,
+            'max_shifts': caiman_max_shifts,
+            'max_deviation_shift': caiman_max_deviation_rigid,
+            'pw_rigid': caiman_pw_rigid,
+            'shifts_opencv': caiman_shifts_opencv,
+            'border_nan': caiman_border_nan
+        }
+        parameters = self._caiman.CNMFParams(params_dict=parameters_dictionary)
+        motion_correct_handler = self._caiman.MotionCorrect(
+            executed_steps=paths_of_videos_to_process,
+            **parameters.motion)
+        output = []
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(self.MOTION_CORRECTION_STEP)
 
-    def _xxx_params(self, movie_path,):
-        # TODO: Check what to do with params which are dependant on numpy
-        # For now I have removed them since they belong to a different category of params
-        # such as CNMF parameters for source extraction and deconvolution and not motion correction oens
-        parameter_dict = {'fnames': movie_path,
-                          'fr': 30,
-                          'dxy': (2., 2.),
-                          'decay_time': 0.4,
-                          'strides': (48, 48),
-                          'overlaps': (24, 24),
-                          'max_shifts': (6,6),
-                          'max_deviation_rigid': 3,
-                          'pw_rigid': True,
-                          'p': 1,
-                          'nb': 2,
-                          'rf': 15,
-                          'K': 4,
-                          'stride': 10,
-                          'method_init': 'greedy_roi',
-                          'rolling_sum': True,
-                          'only_init': True,
-                          'ssub': 1,
-                          'tsub': 1,
-                          'merge_thr': 0.85,
-                          'bas_nonneg': True,
-                          'min_SNR': 2.0,
-                          'rval_thr': 0.85,
-                          'use_cnn': True,
-                          'min_cnn_thr': 0.99,
-                          'cnn_lowest': 0.1}
-
-        parameters = self._caiman.CNMFParams(params_dict=parameter_dict)
-        return parameters
+        motion_correct_handler.motion_correct() # this is executing all file paths...
+        outputs = self._caiman.make_output_file_paths(motion_correct_handler.mmap_file, output_dir, self.MOTION_CORRECTION_VIDEOS_SUFFIX)
+        outputs_plus_ids = {'ids': paths_of_videos_to_process['ids'], 'value': outputs}
+        print("NEW OUTPUTS: ", outputs_plus_ids)
+        # el problema que estoy teniendo es que necesito recorrer cada input dentro de videos-tiff para poder ejecutar el algoritmo y guardar el archivo de salida, pero revisar la construccion de parametros porque se pasa ahí y acá necesito manejarlo diferente al modulo de isx.
+        return {"videos-caiman": outputs_plus_ids}
