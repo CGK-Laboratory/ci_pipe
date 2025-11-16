@@ -134,6 +134,32 @@ class CIPipe:
     def assert_trace_is_valid(self):
         return self._trace_repository.validate()
 
+    def make_output_file_path(
+            self,
+            in_file,
+            out_dir,
+            suffix,
+            ext="tif"
+    ):
+        base = self._file_system.base_path(in_file)
+        stem, _ = self._file_system.split_text(base)
+        if suffix:
+            stem = f"{stem}-{suffix}"
+        new_filename = f"{stem}.{ext}"
+        return self._file_system.join(out_dir, new_filename)
+
+    def make_output_file_paths(
+            self,
+            in_files,
+            out_dir,
+            suffix,
+            ext="tif"
+    ):
+        return [
+            self.make_output_file_path(in_file, out_dir, suffix, ext)
+            for in_file in in_files
+        ]
+
     # Modules
 
     @property
