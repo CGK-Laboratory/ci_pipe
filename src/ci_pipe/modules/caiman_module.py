@@ -43,21 +43,18 @@ class CaimanModule:
             )
             motion_correct_handler.motion_correct(save_movie=caiman_save_movie)
             mmap_files = motion_correct_handler.mmap_file
-            print("MMAP FILES: ", mmap_files)
+            mmap_path = mmap_files[0] # we are processing only one at a time, that's why we can unpack it like this
 
-            if isinstance(mmap_files, (list, tuple)):
-                if len(mmap_files) != 1:
-                    raise ValueError(f"Expected one output file, got: {mmap_files}")
-                output_location_path = mmap_files[0]
-            else:
-                output_location_path = mmap_files
+            memmapped_movie = self._caiman.load(mmap_path)
 
-            output_path = self._ci_pipe.make_output_file_path(
-                output_location_path,
+            tif_output_path = self._ci_pipe.make_output_file_path(
+                mmap_path,
                 output_dir,
-                self.MOTION_CORRECTION_VIDEOS_SUFFIX)
-            self._ci_pipe.copy_file_to_output_directory(output_location_path, self.MOTION_CORRECTION_STEP, )
-            output.append({'ids': input_data['ids'], 'value': output_path})
+                self.MOTION_CORRECTION_VIDEOS_SUFFIX,
+                ext="tif",
+            )
 
-        print("NEW OUTPUTS: ", output)
+            memmapped_movie.save(tif_output_path)
+            output.append({'ids': input_data['ids'], 'value': tif_output_path})
+
         return {"videos-caiman": output}
