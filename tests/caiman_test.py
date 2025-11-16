@@ -22,7 +22,7 @@ class CaimanTestCase(CIPipeTestCase):
         # Given
         pipeline_input = 'input_dir'
         self._file_system.makedirs(pipeline_input)
-        self._file_system.write(f'{pipeline_input}/file1.tiff', '')
+        self._file_system.write(f'{pipeline_input}/file1.tif', '')
         pipeline = CIPipe.with_videos_from_directory(
             pipeline_input,
             file_system=self._file_system,
@@ -37,7 +37,7 @@ class CaimanTestCase(CIPipeTestCase):
             pipeline,
             'videos-caiman',
             [
-                'output/Main Branch - Step 1 - Caiman Motion Correction/file1-MC.tiff',
+                'output/Main Branch - Step 1 - Caiman Motion Correction/file1-MC.tif',
             ],
             self._file_system,
         )

@@ -23,42 +23,41 @@ class CaimanModule:
             caiman_max_deviation_rigid=3,
             caiman_pw_rigid=True,
             caiman_shifts_opencv=True,
-            caiman_border_nan='copy'
+            caiman_border_nan='copy',
+            caiman_save_movie=True
     ):
         # TODO: Think if we should grab all potential extensions accepted by motion correction
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.MOTION_CORRECTION_STEP)
 
-        for input_data in inputs('videos-tiff'):
-            parameters = self._build_motion_correct_params(
-                caiman_border_nan, caiman_max_deviation_rigid,
-                caiman_max_shifts, caiman_overlaps, caiman_pw_rigid,
-                caiman_shifts_opencv, caiman_strides)
-            motion_correct_handler = self._caiman.MotionCorrect(
-                executed_steps=input_data,
-                **parameters.motion)
-            motion_correct_handler.motion_correct()
-            output_location_path = motion_correct_handler.mmap_file
-            output_path = self._caiman.make_output_file_path(output_location_path, output_dir,
-                                                             self.MOTION_CORRECTION_VIDEOS_SUFFIX)
+        for input_data in inputs('videos-tif'):
+            motion_correct_handler = self._caiman.motion_correction.MotionCorrect(
+                fname=input_data['value'],
+                strides=caiman_strides,
+                overlaps=caiman_overlaps,
+                max_shifts=caiman_max_shifts,
+                max_deviation_rigid=caiman_max_deviation_rigid,
+                pw_rigid=caiman_pw_rigid,
+                shifts_opencv=caiman_shifts_opencv,
+                border_nan=caiman_border_nan,
+            )
+            motion_correct_handler.motion_correct(save_movie=caiman_save_movie)
+            mmap_files = motion_correct_handler.mmap_file
+            print("MMAP FILES: ", mmap_files)
+
+            if isinstance(mmap_files, (list, tuple)):
+                if len(mmap_files) != 1:
+                    raise ValueError(f"Expected one output file, got: {mmap_files}")
+                output_location_path = mmap_files[0]
+            else:
+                output_location_path = mmap_files
+
+            output_path = self._ci_pipe.make_output_file_path(
+                output_location_path,
+                output_dir,
+                self.MOTION_CORRECTION_VIDEOS_SUFFIX)
             self._ci_pipe.copy_file_to_output_directory(output_location_path, self.MOTION_CORRECTION_STEP, )
             output.append({'ids': input_data['ids'], 'value': output_path})
 
         print("NEW OUTPUTS: ", output)
         return {"videos-caiman": output}
-
-    def _build_motion_correct_params(
-            self, caiman_border_nan, caiman_max_deviation_rigid,
-            caiman_max_shifts, caiman_overlaps, caiman_pw_rigid,
-            caiman_shifts_opencv, caiman_strides):
-        parameters_dictionary = {
-            'strides': caiman_strides,
-            'overlaps': caiman_overlaps,
-            'max_shifts': caiman_max_shifts,
-            'max_deviation_shift': caiman_max_deviation_rigid,
-            'pw_rigid': caiman_pw_rigid,
-            'shifts_opencv': caiman_shifts_opencv,
-            'border_nan': caiman_border_nan
-        }
-        parameters = self._caiman.CNMFParams(params_dict=parameters_dictionary)
-        return parameters
