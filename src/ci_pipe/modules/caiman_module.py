@@ -26,29 +26,29 @@ class CaimanModule:
             caiman_border_nan='copy'
     ):
         # TODO: Think if we should grab all potential extensions accepted by motion correction
-        paths_of_videos_to_process = inputs('videos-tiff')
-        print("VIDEOS-TIFF: ", paths_of_videos_to_process)
-        parameters_dictionary = {
-            'fnames': paths_of_videos_to_process,
-            'strides': caiman_strides,
-            'overlaps': caiman_overlaps,
-            'max_shifts': caiman_max_shifts,
-            'max_deviation_shift': caiman_max_deviation_rigid,
-            'pw_rigid': caiman_pw_rigid,
-            'shifts_opencv': caiman_shifts_opencv,
-            'border_nan': caiman_border_nan
-        }
-        parameters = self._caiman.CNMFParams(params_dict=parameters_dictionary)
-        motion_correct_handler = self._caiman.MotionCorrect(
-            executed_steps=paths_of_videos_to_process,
-            **parameters.motion)
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.MOTION_CORRECTION_STEP)
 
-        motion_correct_handler.motion_correct() # this is executing all file paths...
-        outputs = self._caiman.make_output_file_paths(motion_correct_handler.mmap_file, output_dir, self.MOTION_CORRECTION_VIDEOS_SUFFIX)
-        for input_data in paths_of_videos_to_process:
-            output.append({'ids': input_data['ids'], 'value': outputs})
+        for input_data in inputs('videos-tiff'):
+            paths_of_video_to_process = input_data['value']
+            parameters_dictionary = {
+                'strides': caiman_strides,
+                'overlaps': caiman_overlaps,
+                'max_shifts': caiman_max_shifts,
+                'max_deviation_shift': caiman_max_deviation_rigid,
+                'pw_rigid': caiman_pw_rigid,
+                'shifts_opencv': caiman_shifts_opencv,
+                'border_nan': caiman_border_nan
+            }
+            parameters = self._caiman.CNMFParams(params_dict=parameters_dictionary)
+            motion_correct_handler = self._caiman.MotionCorrect(
+                executed_steps=input_data,
+                **parameters.motion)
+            motion_correct_handler.motion_correct()
+            output_location_path = motion_correct_handler.mmap_file
+            output_path = self._caiman.make_output_file_path(output_location_path, output_dir, self.MOTION_CORRECTION_VIDEOS_SUFFIX)
+            output.append({'ids': input_data['ids'], 'value': output_path})
+
         print("NEW OUTPUTS: ", output)
         # el problema que estoy teniendo es que necesito recorrer cada input dentro de videos-tiff para poder ejecutar el algoritmo y guardar el archivo de salida, pero revisar la construccion de parametros porque se pasa ahí y acá necesito manejarlo diferente al modulo de isx.
         return {"videos-caiman": output}
