@@ -47,7 +47,8 @@ class CaimanModule:
 
         motion_correct_handler.motion_correct() # this is executing all file paths...
         outputs = self._caiman.make_output_file_paths(motion_correct_handler.mmap_file, output_dir, self.MOTION_CORRECTION_VIDEOS_SUFFIX)
-        outputs_plus_ids = {'ids': paths_of_videos_to_process['ids'], 'value': outputs}
-        print("NEW OUTPUTS: ", outputs_plus_ids)
+        for input_data in paths_of_videos_to_process:
+            output.append({'ids': input_data['ids'], 'value': outputs})
+        print("NEW OUTPUTS: ", output)
         # el problema que estoy teniendo es que necesito recorrer cada input dentro de videos-tiff para poder ejecutar el algoritmo y guardar el archivo de salida, pero revisar la construccion de parametros porque se pasa ahí y acá necesito manejarlo diferente al modulo de isx.
-        return {"videos-caiman": outputs_plus_ids}
+        return {"videos-caiman": output}
