@@ -1,0 +1,358 @@
+{
+    "pipeline": {
+        "inputs": {
+            "videos-isxd": [
+                {
+                    "ids": [
+                        "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                    ],
+                    "value": "input_dir\\simulation1.isxd"
+                },
+                {
+                    "ids": [
+                        "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                    ],
+                    "value": "input_dir\\simulation2.isxd"
+                }
+            ]
+        },
+        "defaults": {
+            "isx_bp_subtract_global_minimum": false,
+            "isx_mc_max_translation": 25,
+            "isx_acr_filters": [
+                [
+                    "SNR",
+                    ">",
+                    3
+                ],
+                [
+                    "Event Rate",
+                    ">",
+                    0
+                ],
+                [
+                    "# Comps",
+                    "=",
+                    1
+                ]
+            ]
+        },
+        "outputs_directory": "output_dir"
+    },
+    "Main Branch": {
+        "steps": [
+            {
+                "index": 1,
+                "name": "ISX Preprocess Videos",
+                "params": {
+                    "isx_pp_temporal_downsample_factor": 1,
+                    "isx_pp_spatial_downsample_factor": 1,
+                    "isx_pp_crop_rect": null,
+                    "isx_pp_crop_rect_format": "tlbr",
+                    "isx_pp_fix_defective_pixels": true,
+                    "isx_pp_trim_early_frames": true
+                },
+                "outputs": {
+                    "videos-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 1 - ISX Preprocess Videos\\simulation1-PP.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 1 - ISX Preprocess Videos\\simulation2-PP.isxd"
+                        }
+                    ]
+                }
+            },
+            {
+                "index": 2,
+                "name": "ISX Bandpass Filter Videos",
+                "params": {
+                    "isx_bp_low_cutoff": 0.005,
+                    "isx_bp_high_cutoff": 0.5,
+                    "isx_bp_retain_mean": false,
+                    "isx_bp_subtract_global_minimum": false
+                },
+                "outputs": {
+                    "videos-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 2 - ISX Bandpass Filter Videos\\simulation1-PP-BP.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 2 - ISX Bandpass Filter Videos\\simulation2-PP-BP.isxd"
+                        }
+                    ]
+                }
+            },
+            {
+                "index": 3,
+                "name": "ISX Motion Correction Videos",
+                "params": {
+                    "isx_mc_series_name": "series1",
+                    "isx_mc_max_translation": 25,
+                    "isx_mc_low_bandpass_cutoff": 0.004,
+                    "isx_mc_high_bandpass_cutoff": 0.016,
+                    "isx_mc_roi": null,
+                    "isx_mc_reference_segment_index": 0,
+                    "isx_mc_reference_frame_index": 0,
+                    "isx_mc_global_registration_weight": 1,
+                    "isx_mc_preserve_input_dimensions": false
+                },
+                "outputs": {
+                    "videos-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 3 - ISX Motion Correction Videos\\simulation1-PP-BP-MC.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 3 - ISX Motion Correction Videos\\simulation2-PP-BP-MC.isxd"
+                        }
+                    ],
+                    "motion-correction-translations": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 3 - ISX Motion Correction Videos\\simulation1-PP-BP-translations.csv"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 3 - ISX Motion Correction Videos\\simulation2-PP-BP-translations.csv"
+                        }
+                    ],
+                    "motion-correction-crop-rect": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 3 - ISX Motion Correction Videos\\simulation1-PP-BP-series1-crop-rect.csv"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 3 - ISX Motion Correction Videos\\simulation2-PP-BP-series1-crop-rect.csv"
+                        }
+                    ],
+                    "motion-correction-mean-images": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 3 - ISX Motion Correction Videos\\simulation1-PP-BP-series1-mean-image.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 3 - ISX Motion Correction Videos\\simulation2-PP-BP-series1-mean-image.isxd"
+                        }
+                    ]
+                }
+            },
+            {
+                "index": 4,
+                "name": "ISX Normalize DFF Videos",
+                "params": {
+                    "isx_dff_f0_type": "mean"
+                },
+                "outputs": {
+                    "videos-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 4 - ISX Normalize DFF Videos\\simulation1-PP-BP-MC-DFF.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 4 - ISX Normalize DFF Videos\\simulation2-PP-BP-MC-DFF.isxd"
+                        }
+                    ]
+                }
+            },
+            {
+                "index": 5,
+                "name": "ISX Extract Neurons PCA ICA",
+                "params": {
+                    "isx_pca_ica_num_pcs": 180,
+                    "isx_pca_ica_num_ics": 120,
+                    "isx_pca_ica_unmix_type": "spatial",
+                    "isx_pca_ica_max_iterations": 100,
+                    "isx_pca_ica_convergence_threshold": 1e-05,
+                    "isx_pca_ica_block_size": 1000,
+                    "isx_pca_ica_auto_estimate_num_ics": false,
+                    "isx_pca_ica_average_cell_diameter": 13
+                },
+                "outputs": {
+                    "cellsets-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 5 - ISX Extract Neurons PCA ICA\\simulation1-PP-BP-MC-DFF-PCA-ICA.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 5 - ISX Extract Neurons PCA ICA\\simulation2-PP-BP-MC-DFF-PCA-ICA.isxd"
+                        }
+                    ]
+                }
+            },
+            {
+                "index": 6,
+                "name": "ISX Detect Events In Cells",
+                "params": {
+                    "isx_ed_threshold": 5,
+                    "isx_ed_tau": 0.2,
+                    "isx_ed_event_time_ref": "beginning",
+                    "isx_ed_ignore_negative_transients": true,
+                    "isx_ed_accepted_cells_only": false
+                },
+                "outputs": {
+                    "events-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 6 - ISX Detect Events In Cells\\simulation1-PP-BP-MC-DFF-PCA-ICA-ED.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 6 - ISX Detect Events In Cells\\simulation2-PP-BP-MC-DFF-PCA-ICA-ED.isxd"
+                        }
+                    ]
+                }
+            },
+            {
+                "index": 7,
+                "name": "ISX Auto Accept Reject Cells",
+                "params": {
+                    "isx_acr_filters": [
+                        [
+                            "SNR",
+                            ">",
+                            3
+                        ],
+                        [
+                            "Event Rate",
+                            ">",
+                            0
+                        ],
+                        [
+                            "# Comps",
+                            "=",
+                            1
+                        ]
+                    ]
+                },
+                "outputs": {
+                    "cellsets-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 7 - ISX Auto Accept Reject Cells\\simulation1-PP-BP-MC-DFF-PCA-ICA.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 7 - ISX Auto Accept Reject Cells\\simulation2-PP-BP-MC-DFF-PCA-ICA.isxd"
+                        }
+                    ]
+                }
+            },
+            {
+                "index": 8,
+                "name": "ISX Longitudinal Registration",
+                "params": {
+                    "isx_lr_reference_selection_strategy": "by_num_cells_desc",
+                    "isx_lr_min_correlation": 0.5,
+                    "isx_lr_accepted_cells_only": false
+                },
+                "outputs": {
+                    "videos-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 8 - ISX Longitudinal Registration\\simulation1-PP-BP-MC-DFF-LR.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 8 - ISX Longitudinal Registration\\simulation2-PP-BP-MC-DFF-LR.isxd"
+                        }
+                    ],
+                    "cellsets-isxd": [
+                        {
+                            "ids": [
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 8 - ISX Longitudinal Registration\\simulation1-PP-BP-MC-DFF-PCA-ICA-LR.isxd"
+                        },
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 8 - ISX Longitudinal Registration\\simulation2-PP-BP-MC-DFF-PCA-ICA-LR.isxd"
+                        }
+                    ],
+                    "longitudinal-registration-correspondences-table": [
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd",
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 8 - ISX Longitudinal Registration\\LR-correspondences-table.csv"
+                        }
+                    ],
+                    "longitudinal-registration-crop-rect": [
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd",
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 8 - ISX Longitudinal Registration\\LR-crop-rect.csv"
+                        }
+                    ],
+                    "longitudinal-registration-transform": [
+                        {
+                            "ids": [
+                                "31b5d9bc31c92bf0fa4ac4fe3f1625e83a89cd309ff5b252abf9341dc995facd",
+                                "7f29cc1433ba58f54430fea438b1c0040d16d8ad0be49f21fd65dc14755e84ea"
+                            ],
+                            "value": "output_dir\\Main Branch - Step 8 - ISX Longitudinal Registration\\LR-transform.csv"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
