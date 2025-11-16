@@ -30,25 +30,35 @@ class CaimanModule:
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.MOTION_CORRECTION_STEP)
 
         for input_data in inputs('videos-tiff'):
-            paths_of_video_to_process = input_data['value']
-            parameters_dictionary = {
-                'strides': caiman_strides,
-                'overlaps': caiman_overlaps,
-                'max_shifts': caiman_max_shifts,
-                'max_deviation_shift': caiman_max_deviation_rigid,
-                'pw_rigid': caiman_pw_rigid,
-                'shifts_opencv': caiman_shifts_opencv,
-                'border_nan': caiman_border_nan
-            }
-            parameters = self._caiman.CNMFParams(params_dict=parameters_dictionary)
+            parameters = self._build_motion_correct_params(
+                caiman_border_nan, caiman_max_deviation_rigid,
+                caiman_max_shifts, caiman_overlaps, caiman_pw_rigid,
+                caiman_shifts_opencv, caiman_strides)
             motion_correct_handler = self._caiman.MotionCorrect(
                 executed_steps=input_data,
                 **parameters.motion)
             motion_correct_handler.motion_correct()
             output_location_path = motion_correct_handler.mmap_file
-            output_path = self._caiman.make_output_file_path(output_location_path, output_dir, self.MOTION_CORRECTION_VIDEOS_SUFFIX)
+            output_path = self._caiman.make_output_file_path(output_location_path, output_dir,
+                                                             self.MOTION_CORRECTION_VIDEOS_SUFFIX)
+            self._ci_pipe.copy_file_to_output_directory(output_location_path, self.MOTION_CORRECTION_STEP, )
             output.append({'ids': input_data['ids'], 'value': output_path})
 
         print("NEW OUTPUTS: ", output)
-        # el problema que estoy teniendo es que necesito recorrer cada input dentro de videos-tiff para poder ejecutar el algoritmo y guardar el archivo de salida, pero revisar la construccion de parametros porque se pasa ahí y acá necesito manejarlo diferente al modulo de isx.
         return {"videos-caiman": output}
+
+    def _build_motion_correct_params(
+            self, caiman_border_nan, caiman_max_deviation_rigid,
+            caiman_max_shifts, caiman_overlaps, caiman_pw_rigid,
+            caiman_shifts_opencv, caiman_strides):
+        parameters_dictionary = {
+            'strides': caiman_strides,
+            'overlaps': caiman_overlaps,
+            'max_shifts': caiman_max_shifts,
+            'max_deviation_shift': caiman_max_deviation_rigid,
+            'pw_rigid': caiman_pw_rigid,
+            'shifts_opencv': caiman_shifts_opencv,
+            'border_nan': caiman_border_nan
+        }
+        parameters = self._caiman.CNMFParams(params_dict=parameters_dictionary)
+        return parameters
