@@ -1,41 +1,39 @@
 import hashlib
 import inspect
 
+from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
 from .errors.defaults_after_step_error import DefaultsAfterStepsError
 from .errors.output_key_not_found_error import OutputKeyNotFoundError
 from .errors.resume_execution_error import ResumeExecutionError
-from .modules.caiman_module import CaimanModule
 from .modules.isx_module import ISXModule
 from .step import Step
 from .trace.schema.branch import Branch
 from .trace.trace_repository import TraceRepository
 from .utils.config_defaults import ConfigDefaults
-from external_dependencies.file_system.persistent_file_system import PersistentFileSystem
 
 
 class CIPipe:
     @classmethod
     def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
-                                   steps=None, file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
-                                   plotter=None, isx=None, caiman=None):
+                                   trace_path="trace.json", file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
+                                   isx=None, caiman=None):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
+
         return cls(
             inputs,
             branch_name=branch_name,
             outputs_directory=outputs_directory,
-            steps=steps,
             file_system=file_system,
             defaults=defaults,
             defaults_path=defaults_path,
-            plotter=plotter,
             isx=isx,
             caiman=caiman,
         )
 
-    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', steps=None,
-                 file_system=PersistentFileSystem(), defaults=None, defaults_path=None, plotter=None, isx=None,
-                 validator=None, caiman=None,):
+    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', trace_path="trace.json", steps=None,
+                 file_system=PersistentFileSystem(), defaults=None, defaults_path=None, isx=None,
+                 validator=None, caiman=None):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
         self._steps = steps or []
@@ -44,9 +42,9 @@ class CIPipe:
         self._outputs_directory = outputs_directory
         self._file_system = file_system
         self._trace_repository = TraceRepository(
-            self._file_system, "trace.json", validator)
+            self._file_system, trace_path, validator)
         self._trace = self._trace_repository.load()
-        self._plotter = plotter
+        self._plotter = Plotter()
         self._isx = isx
         self._caiman = caiman
 
@@ -88,7 +86,6 @@ class CIPipe:
             steps=self._steps.copy(),
             file_system=self._file_system,
             defaults=self._defaults.copy(),
-            plotter=self._plotter,
             isx=self._isx,
         )
 
@@ -117,6 +114,10 @@ class CIPipe:
         output_dir = self.output_directory_for_next_step(next_step_name)
         new_file_path = self._file_system.copy2(file_path, output_dir)
         return new_file_path
+
+    def file_in_output_directory(self, file_name, next_step_name):  # TODO: analyze if this is the best place for this logic
+        output_dir = self.output_directory_for_next_step(next_step_name)
+        return self._file_system.join(output_dir, file_name)
 
     def associate_keys_by_id(self, key, key_to_associate):
         key_inputs = self.output(key)
