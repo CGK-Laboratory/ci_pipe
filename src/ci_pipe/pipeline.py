@@ -5,7 +5,9 @@ from external_dependencies.file_system.persistent_file_system import PersistentF
 from .errors.defaults_after_step_error import DefaultsAfterStepsError
 from .errors.output_key_not_found_error import OutputKeyNotFoundError
 from .errors.resume_execution_error import ResumeExecutionError
+from .modules.caiman_module import CaimanModule
 from .modules.isx_module import ISXModule
+from .plotter import Plotter
 from .step import Step
 from .trace.schema.branch import Branch
 from .trace.trace_repository import TraceRepository
