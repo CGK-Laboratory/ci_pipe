@@ -1,4 +1,4 @@
-class InMemoryISX():
+class InMemoryISX:
     def __init__(self, file_system=None):
         self._file_system = file_system
 
