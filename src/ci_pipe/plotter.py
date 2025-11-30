@@ -1,10 +1,10 @@
+import io
 import json
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-import io
-from rich.console import Console
+
 from ci_pipe.step import Step
 
 
