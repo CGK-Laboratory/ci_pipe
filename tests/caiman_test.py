@@ -35,7 +35,7 @@ class CaimanTestCase(CIPipeTestCase):
         # Then
         self._assert_output_files(
             pipeline,
-            'videos-caiman',
+            'videos-tif',
             [
                 'output/Main Branch - Step 1 - Caiman Motion Correction/file1-MC.tif',
             ],

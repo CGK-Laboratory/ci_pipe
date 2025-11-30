@@ -57,4 +57,4 @@ class CaimanModule:
             memmapped_movie.save(tif_output_path)
             output.append({'ids': input_data['ids'], 'value': tif_output_path})
 
-        return {"videos-caiman": output}
+        return {"videos-tif": output}
