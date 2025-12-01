@@ -64,7 +64,6 @@ class PipelineCleanUpTestCase(CIPipeTestCase):
         self.assertTrue(self._file_system.exists('input_dir/file2.isxd'))
 
     def test03_clean_up_after_key_reutilization_with_different_keys(self):
-        # This will need to use a situation like test_11_a_pipeline_with_isx_can_run_isx_longitudinal_registration, because we need to test with different keys being reutilized
         # Given
         self._file_system.makedirs('input_dir')
         self._file_system.write('input_dir/file1.isxd', '')
@@ -133,6 +132,33 @@ class PipelineCleanUpTestCase(CIPipeTestCase):
             'videos-isxd',
             [
                 'output/Main Branch - Step 2 - ISX Preprocess Videos/file1-PP-PP.isxd',
+            ],
+            self._file_system,
+        )
+        self.assertTrue(self._file_system.exists('input_dir/file1.isxd'))
+
+    def test_05_clean_up_is_aware_of_branching(self):
+        # Given
+        self._file_system.makedirs('input_dir')
+        self._file_system.write('input_dir/file1.isxd', '')
+        pipeline_input = 'input_dir'
+
+        # When
+        pipeline = CIPipe.with_videos_from_directory(
+            pipeline_input,
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+        )
+        pipeline.isx.preprocess_videos()
+        pipeline.branch('Branch 2').isx.preprocess_videos()
+
+        # Then
+        self.assertTrue(self._file_system.exists('output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd'))
+        self._assert_output_files(
+            pipeline,
+            'videos-isxd',
+            [
+                'output/Main Branch - Step 1 - ISX Preprocess Videos/file1-PP.isxd',
             ],
             self._file_system,
         )

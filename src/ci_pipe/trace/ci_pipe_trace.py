@@ -38,6 +38,9 @@ class CIPipeTrace:
 
     def branch_from(self, branch_name) -> Branch:
         return self._branches.get(branch_name)
+    
+    def branches(self) -> List[Branch]:
+        return list(self._branches.values())
 
     def steps_from(self, branch_name) -> List[Step]:
         branch = self.branch_from(branch_name)

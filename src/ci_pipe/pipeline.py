@@ -88,6 +88,7 @@ class CIPipe:
         new_pipe = CIPipe(
             self._raw_pipeline_inputs.copy(),
             branch_name=branch_name,
+            auto_clean_up_enabled=self._auto_clean_up_enabled,
             steps=self._steps.copy(),
             file_system=self._file_system,
             defaults=self._defaults.copy(),
@@ -103,24 +104,24 @@ class CIPipe:
         self._build_initial_trace()
         return self
 
-    def output_directory_for_next_step(self, next_step_name):  # TODO: analyze if this is the best place for this logic
+    def output_directory_for_next_step(self, next_step_name):
         steps_count = len(self._steps)
         step_folder_name = f"{self._branch_name} - Step {steps_count + 1} - {next_step_name}"
         return self._file_system.join(self._outputs_directory, step_folder_name)
 
     def create_output_directory_for_next_step(self,
-                                              next_step_name):  # TODO: analyze if this is the best place for this logic
+                                              next_step_name):
         output_dir = self.output_directory_for_next_step(next_step_name)
         self._file_system.makedirs(output_dir, exist_ok=True)
         return output_dir
 
     def copy_file_to_output_directory(self, file_path,
-                                      next_step_name):  # TODO: analyze if this is the best place for this logic
+                                      next_step_name):
         output_dir = self.output_directory_for_next_step(next_step_name)
         new_file_path = self._file_system.copy2(file_path, output_dir)
         return new_file_path
 
-    def file_in_output_directory(self, file_name, next_step_name):  # TODO: analyze if this is the best place for this logic
+    def file_in_output_directory(self, file_name, next_step_name):
         output_dir = self.output_directory_for_next_step(next_step_name)
         return self._file_system.join(output_dir, file_name)
 
@@ -143,6 +144,7 @@ class CIPipe:
 
     def clean_up_key(self, key):
         old_values = self._old_values_for_key(key)
+        old_values = self._exclude_values_used_in_other_branches(key, old_values)
         for old_value in old_values:
                 if isinstance(old_value, str) and self._file_system.exists(old_value):
                     self._file_system.remove(old_value)
@@ -329,6 +331,24 @@ class CIPipe:
         current_values = [entry['value'] for entry in self.output(key)]
         old_values = [value for value in all_values if value not in current_values]
         return old_values
+    
+    def _exclude_values_used_in_other_branches(self, key, values):
+        branches = self._trace.branches()
+        current_branch = self._trace.branch_from(self._branch_name)
+        values_in_other_branches = set()
+
+        for branch in branches:
+            if branch.name() == current_branch.name():
+                continue
+            for step in branch.steps():
+                step_output = step.step_output()
+                if key in step_output:
+                    values_in_other_branches.update(
+                        entry['value'] for entry in step_output[key]
+                    )
+
+        filtered_values = [value for value in values if value not in values_in_other_branches]
+        return filtered_values
 
 
 
