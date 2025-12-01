@@ -30,3 +30,6 @@ class FileSystemInterface:
 
     def split_text(self, path):
         raise NotImplementedError
+    
+    def remove(self, path: str):
+        raise NotImplementedError

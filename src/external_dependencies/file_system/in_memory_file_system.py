@@ -61,3 +61,9 @@ class InMemoryFileSystem(FileSystemInterface):
             idx = path.rfind(".")
             return (path[:idx], path[idx+1:])
         return (path, "")
+    
+    def remove(self, path):
+        if path in self.files:
+            del self.files[path]
+        else:
+            raise FileNotFoundError(f"No such file: {path}")
