@@ -36,7 +36,6 @@ current_version = "0.1.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Bump version to {new_version}"
 tag_message = "v{new_version}"
-tag_scope = "repo"
 push = false
 
 
