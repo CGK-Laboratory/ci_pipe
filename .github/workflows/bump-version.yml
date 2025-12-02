@@ -45,7 +45,7 @@ jobs:
 
       - name: Bump version (${{ github.event.inputs.version_type }})
         run: |
-          bumpver update --${{ github.event.inputs.version_type }} --commit --tag
+          bumpver update --${{ github.event.inputs.version_type }} --commit
           git push origin HEAD:master
           git push origin --tags
 
