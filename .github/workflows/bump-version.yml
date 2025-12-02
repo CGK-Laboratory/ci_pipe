@@ -41,7 +41,7 @@ jobs:
       - name: Configure Git user
         run: |
           git config --global user.email "actions@github.com"
-          git configg --global user.name "GitHub Actions"
+          git config --global user.name "GitHub Actions"
 
       - name: Bump version (${{ github.event.inputs.version_type }})
         run: |
