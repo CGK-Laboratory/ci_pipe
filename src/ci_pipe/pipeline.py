@@ -18,7 +18,7 @@ class CIPipe:
     @classmethod
     def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
                                    trace_path="trace.json", file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
-                                   isx=None, caiman=None):
+                                   isx=None, caiman=None, auto_clean_up_enabled=True):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
 
@@ -31,16 +31,18 @@ class CIPipe:
             defaults_path=defaults_path,
             isx=isx,
             caiman=caiman,
+            auto_clean_up_enabled=auto_clean_up_enabled,
         )
 
     def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', trace_path="trace.json", steps=None,
                  file_system=PersistentFileSystem(), defaults=None, defaults_path=None, isx=None,
-                 validator=None, caiman=None):
+                 validator=None, caiman=None, auto_clean_up_enabled=True):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
         self._raw_pipeline_inputs = inputs
         self._steps = steps or []
         self._defaults = {}
         self._branch_name = branch_name
+        self._auto_clean_up_enabled = auto_clean_up_enabled
         self._outputs_directory = outputs_directory
         self._file_system = file_system
         self._trace_repository = TraceRepository(
@@ -70,6 +72,7 @@ class CIPipe:
         new_step = Step(step_name, self.output, step_function, args, kwargs)
         self._steps.append(new_step)
         self._update_trace_if_available()
+        self._try_clean_up_if_enabled()
         return self
 
     def info(self, step_number):
@@ -85,6 +88,7 @@ class CIPipe:
         new_pipe = CIPipe(
             self._raw_pipeline_inputs.copy(),
             branch_name=branch_name,
+            auto_clean_up_enabled=self._auto_clean_up_enabled,
             steps=self._steps.copy(),
             file_system=self._file_system,
             defaults=self._defaults.copy(),
@@ -100,24 +104,24 @@ class CIPipe:
         self._build_initial_trace()
         return self
 
-    def output_directory_for_next_step(self, next_step_name):  # TODO: analyze if this is the best place for this logic
+    def output_directory_for_next_step(self, next_step_name):
         steps_count = len(self._steps)
         step_folder_name = f"{self._branch_name} - Step {steps_count + 1} - {next_step_name}"
         return self._file_system.join(self._outputs_directory, step_folder_name)
 
     def create_output_directory_for_next_step(self,
-                                              next_step_name):  # TODO: analyze if this is the best place for this logic
+                                              next_step_name):
         output_dir = self.output_directory_for_next_step(next_step_name)
         self._file_system.makedirs(output_dir, exist_ok=True)
         return output_dir
 
     def copy_file_to_output_directory(self, file_path,
-                                      next_step_name):  # TODO: analyze if this is the best place for this logic
+                                      next_step_name):
         output_dir = self.output_directory_for_next_step(next_step_name)
         new_file_path = self._file_system.copy2(file_path, output_dir)
         return new_file_path
 
-    def file_in_output_directory(self, file_name, next_step_name):  # TODO: analyze if this is the best place for this logic
+    def file_in_output_directory(self, file_name, next_step_name):
         output_dir = self.output_directory_for_next_step(next_step_name)
         return self._file_system.join(output_dir, file_name)
 
@@ -133,6 +137,28 @@ class CIPipe:
         ]
 
         return pairs
+
+    def clean_up_all(self):
+        for key in self.all_keys():
+            self.clean_up_key(key)
+        return self
+
+    def clean_up_key(self, key):
+        old_values = self._old_values_for_key(key)
+        old_values = self._exclude_values_used_in_other_branches(key, old_values)
+        for old_value in old_values:
+                if isinstance(old_value, str) and self._file_system.exists(old_value):
+                    self._file_system.remove(old_value)
+        return self
+
+    def all_keys(self):
+        keys = set()
+        for step in self._steps:
+            for key in step.step_output().keys():
+                keys.add(key)
+        for key in self._pipeline_inputs.keys():
+            keys.add(key)
+        return list(keys)
 
     def assert_trace_is_valid(self):
         return self._trace_repository.validate()
@@ -283,8 +309,6 @@ class CIPipe:
             )
             self._steps.append(restored_steps)
 
-
-
     def _inputs_with_ids(self, inputs):
         inputs_with_ids = {}
         for key, values in inputs.items():
@@ -295,3 +319,38 @@ class CIPipe:
 
     def _hash_id(self, key, value):
         return hashlib.sha256((key + str(value)).encode()).hexdigest()
+    
+    def _try_clean_up_if_enabled(self):
+        if self._auto_clean_up_enabled:
+            self.clean_up_all()
+
+    def _old_values_for_key(self, key):
+        all_values = []
+        for step in self._steps:
+            step_output = step.step_output()
+            if key in step_output:
+                all_values.extend([entry['value'] for entry in step_output[key]])
+        current_values = [entry['value'] for entry in self.output(key)]
+        old_values = [value for value in all_values if value not in current_values]
+        return old_values
+    
+    def _exclude_values_used_in_other_branches(self, key, values):
+        branches = self._trace.branches()
+        current_branch = self._trace.branch_from(self._branch_name)
+        values_in_other_branches = set()
+
+        for branch in branches:
+            if branch.name() == current_branch.name():
+                continue
+            for step in branch.steps():
+                step_output = step.step_output()
+                if key in step_output:
+                    values_in_other_branches.update(
+                        entry['value'] for entry in step_output[key]
+                    )
+
+        filtered_values = [value for value in values if value not in values_in_other_branches]
+        return filtered_values
+
+
+

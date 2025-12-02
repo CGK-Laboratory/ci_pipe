@@ -36,3 +36,6 @@ class PersistentFileSystem(FileSystemInterface):
 
     def split_text(self, path):
         return os.path.splitext(path)
+    
+    def remove(self, path):
+        return os.remove(path)
