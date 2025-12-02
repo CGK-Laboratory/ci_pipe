@@ -141,6 +141,7 @@ class CIPipe:
     def clean_up_all(self):
         for key in self.all_keys():
             self.clean_up_key(key)
+        return self
 
     def clean_up_key(self, key):
         old_values = self._old_values_for_key(key)
@@ -148,6 +149,7 @@ class CIPipe:
         for old_value in old_values:
                 if isinstance(old_value, str) and self._file_system.exists(old_value):
                     self._file_system.remove(old_value)
+        return self
 
     def all_keys(self):
         keys = set()
