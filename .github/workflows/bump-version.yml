@@ -1,17 +1,8 @@
-name: Bump Version
+name: Bump version on PR
 
 on:
-  workflow_dispatch:
-    inputs:
-      version_type:
-        description: "Select the type of version you want to release"
-        required: true
-        type: choice
-        default: "patch"
-        options:
-          - patch
-          - minor
-          - major
+  pull_request:
+    types: [opened, synchronize, labeled]
 
 jobs:
   bump-version:
@@ -20,12 +11,36 @@ jobs:
     permissions:
       contents: write
 
+    if: >
+      contains(join(fromJSON('[""
+        ,${{ toJSON(github.event.pull_request.labels.*.name) }}
+      ]), ' '), 'release:patch')
+      || contains(join(fromJSON('[""
+        ,${{ toJSON(github.event.pull_request.labels.*.name) }}
+      ]), ' '), 'release:minor')
+      || contains(join(fromJSON('[""
+        ,${{ toJSON(github.event.pull_request.labels.*.name) }}
+      ]), ' '), 'release:major')
+
     steps:
-      - name: Checkout code
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
-          ref: master
+
+      - name: Determine version type from labels
+        id: version_type
+        run: |
+          LABELS="${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+
+          if echo "$LABELS" | grep -q 'release:major'; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif echo "$LABELS" | grep -q 'release:minor'; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,15 +57,7 @@ jobs:
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
 
-      - name: Compute next version
-        id: next
+      - name: Bump version on PR branch
         run: |
-          NEXT_VERSION=$(bumpver show --next ${{ github.event.inputs.version_type }})
-          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Bump version and create release branch
-        run: |
-          bumpver update --${{ github.event.inputs.version_type }} --commit
-          RELEASE_BRANCH="release/v${{ steps.next.outputs.version }}"
-          git branch "$RELEASE_BRANCH"
-          git push origin "$RELEASE_BRANCH"
+          bumpver update --${{ steps.version_type.outputs.type }} --commit
+          git push origin HEAD:${{ github.head_ref }}
