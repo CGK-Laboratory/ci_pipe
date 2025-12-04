@@ -2,7 +2,7 @@ name: Bump version on PR
 
 on:
   pull_request:
-    types: [opened, synchronize, labeled]
+    types: [ opened, synchronize, labeled ]
 
 jobs:
   bump-version:
@@ -11,16 +11,10 @@ jobs:
     permissions:
       contents: write
 
-    if: >
-      contains(join(fromJSON('[""
-        ,${{ toJSON(github.event.pull_request.labels.*.name) }}
-      ]), ' '), 'release:patch')
-      || contains(join(fromJSON('[""
-        ,${{ toJSON(github.event.pull_request.labels.*.name) }}
-      ]), ' '), 'release:minor')
-      || contains(join(fromJSON('[""
-        ,${{ toJSON(github.event.pull_request.labels.*.name) }}
-      ]), ' '), 'release:major')
+    if: |
+      contains(join(github.event.pull_request.labels.*.name, ' '), 'release:patch')
+      || contains(join(github.event.pull_request.labels.*.name, ' '), 'release:minor')
+      || contains(join(github.event.pull_request.labels.*.name, ' '), 'release:major')
 
     steps:
       - name: Checkout PR branch
