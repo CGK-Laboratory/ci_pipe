@@ -219,18 +219,19 @@ class CaimanModule:
                 expected_comps=caiman_expected_comps,
                 params=caiman_params
             )
+
+            # Note: Values for this algorithm are changed within estimates object of cnmf model
             memmapped_movie = self._caiman.load(input_data['value'])
-            print("MEMMAPPED MOVIE: ", memmapped_movie)
             cnmf_model.fit(images=memmapped_movie)
 
-            tif_output_path = self._ci_pipe.make_output_file_path(
+            hdf5_output_path = self._ci_pipe.make_output_file_path(
                 input_data['value'],
                 output_dir,
                 self.CNMF_VIDEOS_SUFFIX,
-                ext="tif",
+                ext="hdf5",
             )
 
-            memmapped_movie.save(tif_output_path)
-            output.append({'ids': input_data['ids'], 'value': tif_output_path})
+            cnmf_model.save(hdf5_output_path)
+            output.append({'ids': input_data['ids'], 'value': hdf5_output_path})
 
-        return {"videos-tif": output}
+        return {"files-hdf5": output}
