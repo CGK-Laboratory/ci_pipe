@@ -1,7 +1,7 @@
 from external_dependencies.caiman.mocked_motion_correct import MockedMotionCorrect
 
 
-class MockMotionCorrectionModule:
+class MockedMotionCorrectionSubModule:
     def __init__(self, file_system):
         self._file_system = file_system
 
