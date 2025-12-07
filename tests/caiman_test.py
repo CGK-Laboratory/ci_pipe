@@ -42,6 +42,40 @@ class CaimanTestCase(CIPipeTestCase):
             self._file_system,
         )
 
+
+    def test_03_a_pipeline_with_caiman_can_execute_constrained_non_negative_matrix_factorization_algorithm(self):
+        # Given
+        pipeline_input = 'input_dir'
+        self._file_system.makedirs(pipeline_input)
+        self._file_system.write(f'{pipeline_input}/file1.tif', '')
+        pipeline = CIPipe.with_videos_from_directory(
+            pipeline_input,
+            file_system=self._file_system,
+            caiman=InMemoryCaiman(self._file_system)
+        )
+        pipeline.caiman.motion_correction()
+
+        # When
+        pipeline.caiman.cnmf()
+
+        # Then
+        self._assert_output_files(
+            pipeline,
+            'videos-tif',
+            [
+                'output/Main Branch - Step 1 - Caiman Motion Correction/file1-MC.tif',
+            ],
+            self._file_system,
+        )
+        self._assert_output_files(
+            pipeline,
+            'files-hdf5',
+            [
+                'output/Main Branch - Step 2 - Caiman Constrained Non-negative Matrix Factorization/file1-MC-CNMF.hdf5',
+            ],
+            self._file_system,
+        )
+
     def _assert_output_files(self, pipeline, key, expected_paths, file_system):
         output = pipeline.output(key)
         self.assertEqual(len(output), len(expected_paths))
