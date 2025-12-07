@@ -138,14 +138,10 @@ class CaimanModule:
             caiman_expected_comps=500,
             caiman_params=None
     ):
-        print("CNMF STEP ENTERED")
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.CNMF_STEP)
 
-        print("OUTPUT DIR: ", output_dir)
-
         for input_data in inputs('videos-tif'):
-            print("INPUT DATA VALUE: ", input_data['value'])
             cnmf_model = self._caiman.source_extraction.cnmf.CNMF(
                 n_processes=caiman_n_processes,
                 k=caiman_k,
