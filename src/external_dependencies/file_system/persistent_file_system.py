@@ -21,6 +21,9 @@ class PersistentFileSystem(FileSystemInterface):
 
     def listdir(self, path: str) -> List[str]:
         return [os.path.join(path, name) for name in os.listdir(path)]
+    
+    def subdirs(self, path: str) -> List[str]:
+        return [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
 
     def open(self, path: str, mode: str = 'r', encoding: str = None):
         return open(path, mode, encoding=encoding)

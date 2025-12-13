@@ -29,6 +29,18 @@ class InMemoryFileSystem(FileSystemInterface):
         if path not in self.directories:
             raise FileNotFoundError(f"No such directory: {path}")
         return [f for f in self.files if f.startswith(path)]
+    
+    def subdirs(self, path: str) -> List[str]:
+        if path not in self.directories:
+            raise FileNotFoundError(f"No such directory: {path}")
+        subdirs = set()
+        prefix = path if path.endswith("/") else path + "/"
+        for file_path in self.files:
+            if file_path.startswith(prefix):
+                remainder = file_path[len(prefix):]
+                subdir = remainder.split("/", 1)[0]
+                subdirs.add(subdir)
+        return list(subdirs)
 
     def open(self, path: str, mode: str = 'r', encoding: str = None):
         if 'w' in mode:

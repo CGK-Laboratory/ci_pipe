@@ -15,6 +15,9 @@ class FileSystemInterface:
 
     def listdir(self, path: str) -> List[str]:
         raise NotImplementedError
+    
+    def subdirs(self, path: str) -> List[str]:
+        raise NotImplementedError
 
     def open(self, path: str, mode: str = 'r', encoding: str = None):
         raise NotImplementedError
