@@ -61,6 +61,7 @@ class MultiCIPipe():
             dir_path = file_system.join(inputs_directory, dir_entry)
             outputs_directory_for_pipeline = file_system.join(outputs_directory, dir_entry)
             if file_system.exists(dir_path):
+                file_system.makedirs(outputs_directory_for_pipeline, exist_ok=True)
                 pipeline = CIPipe.with_videos_from_directory(
                     dir_path,
                     branch_name=branch_name,
