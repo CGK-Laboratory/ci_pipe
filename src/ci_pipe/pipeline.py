@@ -26,6 +26,7 @@ class CIPipe:
             inputs,
             branch_name=branch_name,
             outputs_directory=outputs_directory,
+            trace_path=trace_path,
             file_system=file_system,
             defaults=defaults,
             defaults_path=defaults_path,
@@ -51,7 +52,6 @@ class CIPipe:
         self._plotter = Plotter()
         self._isx = isx
         self._caiman = caiman
-
         self._load_combined_defaults(defaults, defaults_path)
         self._build_initial_trace()
 
@@ -64,6 +64,10 @@ class CIPipe:
         if key in self._pipeline_inputs:
             return self._pipeline_inputs[key]
         raise OutputKeyNotFoundError(key)
+    
+    def values(self, key):
+        outputs = self.output(key)
+        return [entry['value'] for entry in outputs]
 
     def step(self, step_name, step_function, *args, **kwargs):
         self._assert_pipeline_can_resume_execution()
@@ -87,12 +91,15 @@ class CIPipe:
     def branch(self, branch_name):
         new_pipe = CIPipe(
             self._raw_pipeline_inputs.copy(),
+            outputs_directory=self._outputs_directory,
+            trace_path=self._trace_repository.trace_path(),
             branch_name=branch_name,
             auto_clean_up_enabled=self._auto_clean_up_enabled,
             steps=self._steps.copy(),
             file_system=self._file_system,
             defaults=self._defaults.copy(),
             isx=self._isx,
+            caiman=self._caiman,
         )
 
         return new_pipe
@@ -103,6 +110,9 @@ class CIPipe:
         self._load_combined_defaults(defaults, defaults_path)
         self._build_initial_trace()
         return self
+    
+    def defaults(self):
+        return self._defaults.copy()
 
     def output_directory_for_next_step(self, next_step_name):
         steps_count = len(self._steps)

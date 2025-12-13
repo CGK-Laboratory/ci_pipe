@@ -375,6 +375,17 @@ class PipelineTestCase(CIPipeTestCase):
         self.assertEqual(output_after_new_step[0]['value'], 2)
         self.assertNotEqual(initial_trace_content, final_trace_content)
 
+    def test_27_a_pipeline_gives_specific_values(self):
+        # Given
+        pipeline_input = {'numbers': [1, 2, 3]}
+
+        # When
+        pipeline = CIPipe(pipeline_input, file_system=self._file_system)
+
+        # Then
+        values = pipeline.values('numbers')
+        self.assertListEqual(values, [1, 2, 3])
+
 
 
 if __name__ == '__main__':
