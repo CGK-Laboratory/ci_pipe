@@ -1,0 +1,222 @@
+{
+    "fileVersion": 0,
+    "name": "pca-ica.isxp",
+    "producer": {
+        "name": "isxcore",
+        "version": [
+            1,
+            9,
+            2
+        ]
+    },
+    "rootGroup": {
+        "itemType": 0,
+        "items": [
+            {
+                "children": [
+                {
+                    "children": [
+                        {
+                            "children": [],
+                            "dataSets": [
+                                {
+                                    "dataSetType": 5,
+                                    "fileName": "/data/output_test/example-200-dff-pca-ica-ED",
+                                    "history": {
+                                        "inputParameters": {},
+                                        "operation": "Import"
+                                    },
+                                    "imported": true,
+                                    "name": "example-200-dff-pca-ica-ED",
+                                    "properties": {
+                                        "dmax": 0.0,
+                                        "dmin": 0.0
+                                    }
+                                }
+                            ],
+                            "isUnitary": true,
+                            "itemType": 1,
+                            "name": "example-200-dff-pca-ica-ED"
+                        }
+                    ],
+                    "dataSets": [
+                        {
+                            "dataSetType": 1,
+                            "fileName": "/data/output_test/example-200-dff-pca-ica",
+                            "history": {
+                                "inputParameters": {},
+                                "operation": "Import"
+                            },
+                            "imported": true,
+                            "name": "example-200-dff-pca-ica",
+                            "properties": {
+                                "dmax": 0.0,
+                                "dmin": 0.0
+                            }
+                        }
+                    ],
+                    "isUnitary": true,
+                    "itemType": 1,
+                    "name": "example-200-dff-pca-ica"
+                }
+            ],
+            "dataSets": [
+                {
+                    "dataSetType": 0,
+                    "fileName": "/data/output_test/example-200-dff",
+                    "history": {
+                        "inputParameters": {},
+                        "operation": "Import"
+                    },
+                    "imported": true,
+                    "name": "example-200-dff",
+                    "properties": {
+                        "dmax": 400,
+                        "dmin": 400
+                    }
+                }
+            ],
+            "isUnitary": true,
+            "itemType": 1,
+            "name": "example-200-dff"
+            }, 
+            {
+                "children": [
+                {
+                    "children": [
+                        {
+                            "children": [],
+                            "dataSets": [
+                                {
+                                    "dataSetType": 5,
+                                    "fileName": "/data/output_test/example-500-dff-pca-ica-ED",
+                                    "history": {
+                                        "inputParameters": {},
+                                        "operation": "Import"
+                                    },
+                                    "imported": true,
+                                    "name": "example-500-dff-pca-ica-ED",
+                                    "properties": {
+                                        "dmax": 0.0,
+                                        "dmin": 0.0
+                                    }
+                                }
+                            ],
+                            "isUnitary": true,
+                            "itemType": 1,
+                            "name": "example-500-dff-pca-ica-ED"
+                        }
+                    ],
+                    "dataSets": [
+                        {
+                            "dataSetType": 1,
+                            "fileName": "/data/output_test/example-500-dff-pca-ica",
+                            "history": {
+                                "inputParameters": {},
+                                "operation": "Import"
+                            },
+                            "imported": true,
+                            "name": "example-500-dff-pca-ica",
+                            "properties": {
+                                "dmax": 0.0,
+                                "dmin": 0.0
+                            }
+                        }
+                    ],
+                    "isUnitary": true,
+                    "itemType": 1,
+                    "name": "example-500-dff-pca-ica"
+                }
+            ],
+            "dataSets": [
+                {
+                    "dataSetType": 0,
+                    "fileName": "/data/output_test/example-500-dff",
+                    "history": {
+                        "inputParameters": {},
+                        "operation": "Import"
+                    },
+                    "imported": true,
+                    "name": "example-500-dff",
+                    "properties": {
+                        "dmax": 400,
+                        "dmin": 400
+                    }
+                }
+            ],
+            "isUnitary": true,
+            "itemType": 1,
+            "name": "example-500-dff"
+            }, 
+            {
+                "children": [
+                {
+                    "children": [
+                        {
+                            "children": [],
+                            "dataSets": [
+                                {
+                                    "dataSetType": 5,
+                                    "fileName": "/data/output_test/example-800-dff-pca-ica-ED",
+                                    "history": {
+                                        "inputParameters": {},
+                                        "operation": "Import"
+                                    },
+                                    "imported": true,
+                                    "name": "example-800-dff-pca-ica-ED",
+                                    "properties": {
+                                        "dmax": 0.0,
+                                        "dmin": 0.0
+                                    }
+                                }
+                            ],
+                            "isUnitary": true,
+                            "itemType": 1,
+                            "name": "example-800-dff-pca-ica-ED"
+                        }
+                    ],
+                    "dataSets": [
+                        {
+                            "dataSetType": 1,
+                            "fileName": "/data/output_test/example-800-dff-pca-ica",
+                            "history": {
+                                "inputParameters": {},
+                                "operation": "Import"
+                            },
+                            "imported": true,
+                            "name": "example-800-dff-pca-ica",
+                            "properties": {
+                                "dmax": 0.0,
+                                "dmin": 0.0
+                            }
+                        }
+                    ],
+                    "isUnitary": true,
+                    "itemType": 1,
+                    "name": "example-800-dff-pca-ica"
+                }
+            ],
+            "dataSets": [
+                {
+                    "dataSetType": 0,
+                    "fileName": "/data/output_test/example-800-dff",
+                    "history": {
+                        "inputParameters": {},
+                        "operation": "Import"
+                    },
+                    "imported": true,
+                    "name": "example-800-dff",
+                    "properties": {
+                        "dmax": 400,
+                        "dmin": 400
+                    }
+                }
+            ],
+            "isUnitary": true,
+            "itemType": 1,
+            "name": "example-800-dff"
+            }
+        ],
+        "name": "/"
+    }
+}

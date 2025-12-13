@@ -17,7 +17,8 @@ from .utils.config_defaults import ConfigDefaults
 class CIPipe:
     @classmethod
     def with_videos_from_directory(cls, input, branch_name='Main Branch', outputs_directory='output',
-                                   trace_path="trace.json", file_system=PersistentFileSystem(), defaults=None, defaults_path=None,
+                                   trace_path="trace.json", file_system=PersistentFileSystem(), defaults=None,
+                                   defaults_path=None,
                                    isx=None, caiman=None, auto_clean_up_enabled=True):
         files = file_system.listdir(input)
         inputs = cls._video_inputs_with_extension(files)
@@ -35,7 +36,50 @@ class CIPipe:
             auto_clean_up_enabled=auto_clean_up_enabled,
         )
 
-    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', trace_path="trace.json", steps=None,
+    @classmethod
+    def with_multiplane_videos_from_directory(
+            cls,
+            input_dir,
+            *,
+            group_name="recording-1",
+            branch_name="Main Branch",
+            outputs_directory="output",
+            trace_path="trace.json",
+            file_system=PersistentFileSystem(),
+            defaults=None,
+            defaults_path=None,
+            isx=None,
+            caiman=None,
+            auto_clean_up_enabled=True,
+    ):
+        files = file_system.listdir(input_dir)
+        inputs = cls._video_inputs_with_extension(files)
+
+        pipeline = cls(
+            inputs,
+            branch_name=branch_name,
+            outputs_directory=outputs_directory,
+            trace_path=trace_path,
+            file_system=file_system,
+            defaults=defaults,
+            defaults_path=defaults_path,
+            isx=isx,
+            caiman=caiman,
+            auto_clean_up_enabled=auto_clean_up_enabled,
+        )
+
+        # NOTE: Overwriting of input ids, everything in that folder belongs to the same "original video"
+        shared_id = pipeline._hash_id("multiplane", group_name)
+
+        for key, entries in pipeline._pipeline_inputs.items():
+            for entry in entries:
+                entry["ids"] = [shared_id]
+
+        pipeline._build_initial_trace()
+        return pipeline
+
+    def __init__(self, inputs, branch_name='Main Branch', outputs_directory='output', trace_path="trace.json",
+                 steps=None,
                  file_system=PersistentFileSystem(), defaults=None, defaults_path=None, isx=None,
                  validator=None, caiman=None, auto_clean_up_enabled=True):
         self._pipeline_inputs = self._inputs_with_ids(inputs)
@@ -64,7 +108,7 @@ class CIPipe:
         if key in self._pipeline_inputs:
             return self._pipeline_inputs[key]
         raise OutputKeyNotFoundError(key)
-    
+
     def values(self, key):
         outputs = self.output(key)
         return [entry['value'] for entry in outputs]
@@ -104,13 +148,16 @@ class CIPipe:
 
         return new_pipe
 
+    def file_system(self):
+        return self._file_system
+
     def set_defaults(self, defaults_path=None, **defaults):
         if self._steps:
             raise DefaultsAfterStepsError()
         self._load_combined_defaults(defaults, defaults_path)
         self._build_initial_trace()
         return self
-    
+
     def defaults(self):
         return self._defaults.copy()
 
@@ -157,8 +204,8 @@ class CIPipe:
         old_values = self._old_values_for_key(key)
         old_values = self._exclude_values_used_in_other_branches(key, old_values)
         for old_value in old_values:
-                if isinstance(old_value, str) and self._file_system.exists(old_value):
-                    self._file_system.remove(old_value)
+            if isinstance(old_value, str) and self._file_system.exists(old_value):
+                self._file_system.remove(old_value)
         return self
 
     def all_keys(self):
@@ -292,12 +339,10 @@ class CIPipe:
         branch = self._trace.branch_from(self._branch_name)
         return branch is not None and not self._trace.has_empty_steps_for(branch.name())
 
-
     def _is_same_trace_file(self):
         # With the current design this repo always points to the same file name ("trace.json"),
         # so "same file" reduces to "the file exists".
         return self._trace_repository.exists()
-
 
     def _is_same_output_directory(self):
         current_output_directory = self._trace.to_dict()['pipeline']['outputs_directory']
@@ -329,7 +374,7 @@ class CIPipe:
 
     def _hash_id(self, key, value):
         return hashlib.sha256((key + str(value)).encode()).hexdigest()
-    
+
     def _try_clean_up_if_enabled(self):
         if self._auto_clean_up_enabled:
             self.clean_up_all()
@@ -343,7 +388,7 @@ class CIPipe:
         current_values = [entry['value'] for entry in self.output(key)]
         old_values = [value for value in all_values if value not in current_values]
         return old_values
-    
+
     def _exclude_values_used_in_other_branches(self, key, values):
         branches = self._trace.branches()
         current_branch = self._trace.branch_from(self._branch_name)
@@ -361,6 +406,3 @@ class CIPipe:
 
         filtered_values = [value for value in values if value not in values_in_other_branches]
         return filtered_values
-
-
-

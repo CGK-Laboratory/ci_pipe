@@ -217,7 +217,6 @@ class ISXTestCase(CIPipeTestCase):
             self._file_system,
         )
 
-
     def test_09_a_pipeline_with_isx_can_export_last_videos_to_tiff(self):
         # Given
         self._file_system.makedirs('input_dir')
@@ -226,7 +225,8 @@ class ISXTestCase(CIPipeTestCase):
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system, isx=InMemoryISX(self._file_system))
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system,
+                                                     isx=InMemoryISX(self._file_system))
         pipeline.isx.preprocess_videos()
         pipeline.isx.export_movie_to_tiff()
 
@@ -249,7 +249,8 @@ class ISXTestCase(CIPipeTestCase):
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system, isx=InMemoryISX(self._file_system))
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system,
+                                                     isx=InMemoryISX(self._file_system))
         pipeline.isx.preprocess_videos()
         pipeline.isx.export_movie_to_nwb()
 
@@ -272,7 +273,8 @@ class ISXTestCase(CIPipeTestCase):
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system, isx=InMemoryISX(self._file_system))
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system,
+                                                     isx=InMemoryISX(self._file_system))
         pipeline.isx.extract_neurons_pca_ica()
         pipeline.isx.detect_events_in_cells()
         pipeline.isx.longitudinal_registration()
@@ -321,7 +323,8 @@ class ISXTestCase(CIPipeTestCase):
             self._file_system,
         )
 
-    def test_12_a_pipeline_with_isx_can_run_isx_longitudinal_registration_with_num_cells_desc_as_reference_selection(self):
+    def test_12_a_pipeline_with_isx_can_run_isx_longitudinal_registration_with_num_cells_desc_as_reference_selection(
+            self):
         # Given
         self._file_system.makedirs('input_dir')
         self._file_system.write('input_dir/file1.isxd', '')
@@ -329,7 +332,8 @@ class ISXTestCase(CIPipeTestCase):
         pipeline_input = 'input_dir'
 
         # When
-        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system, isx=InMemoryISX(self._file_system))
+        pipeline = CIPipe.with_videos_from_directory(pipeline_input, file_system=self._file_system,
+                                                     isx=InMemoryISX(self._file_system))
         pipeline.isx.extract_neurons_pca_ica()
         pipeline.isx.detect_events_in_cells()
         pipeline.isx.longitudinal_registration(isx_lr_reference_selection_strategy='by_num_cells_desc')
@@ -354,6 +358,79 @@ class ISXTestCase(CIPipeTestCase):
             self._file_system,
         )
 
+    def test_13_a_pipeline_with_isx_can_create_gui_visualization_project_for_multiplane_data(self):
+        # Given
+        self._initialize_directory_with_three_plane_videos()
+
+        pipeline = CIPipe.with_multiplane_videos_from_directory(
+            "input_dir",
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+            group_name="a_rat_experiment_day_one"
+        )
+
+        # When
+        pipeline.isx.normalize_dff_videos()
+        pipeline.isx.extract_neurons_pca_ica()
+        pipeline.isx.detect_events_in_cells()
+        pipeline.isx.create_inscopix_project(isx_cellsetname="pca-ica")
+
+        # Then
+        self._assert_output_files(
+            pipeline,
+            "inscopix-projects",
+            [
+                "output/Main Branch - Step 4 - ISX Gui Visualization/file1.1-GUI.isxp",
+            ],
+            self._file_system,
+        )
+        self.assertTrue(self._file_system.exists(
+            "output/Main Branch - Step 4 - ISX Gui Visualization/file1.1-GUI_data"
+        ))
+        isxp_path = pipeline.output("inscopix-projects")[0]["value"]
+        text = self._file_system.read(isxp_path)
+
+        for file in ("file1.1", "file1.2", "file1.3"):
+            self.assertIn(f"{file}-DFF.isxd", text)
+            self.assertIn(f"{file}-DFF-PCA-ICA.isxd", text)
+            self.assertIn(f"{file}-DFF-PCA-ICA-ED.isxd", text)
+
+
+    def test_14_a_pipeline_with_isx_creates_gui_visualization_project_per_original_video(self):
+        # Given
+        self._initialize_directory_with_three_original_videos()
+
+        pipeline = CIPipe.with_videos_from_directory(
+            "input_dir",
+            file_system=self._file_system,
+            isx=InMemoryISX(self._file_system),
+        )
+
+        # When
+        pipeline.isx.normalize_dff_videos()
+        pipeline.isx.extract_neurons_pca_ica()
+        pipeline.isx.detect_events_in_cells()
+        pipeline.isx.create_inscopix_project(isx_cellsetname="pca-ica")
+
+        # Then
+        self._assert_output_files(
+            pipeline,
+            "inscopix-projects",
+            [
+                "output/Main Branch - Step 4 - ISX Gui Visualization/file1-GUI.isxp",
+                "output/Main Branch - Step 4 - ISX Gui Visualization/file2-GUI.isxp",
+                "output/Main Branch - Step 4 - ISX Gui Visualization/file3-GUI.isxp",
+            ],
+            self._file_system,
+        )
+
+        for base in ("file1", "file2", "file3"):
+            self.assertTrue(
+                self._file_system.exists(
+                    f"output/Main Branch - Step 4 - ISX Gui Visualization/{base}-GUI_data"
+                ),
+            )
+
     def _assert_output_files(self, pipeline, key, expected_paths, file_system):
         output = pipeline.output(key)
         self.assertEqual(len(output), len(expected_paths))
@@ -366,6 +443,17 @@ class ISXTestCase(CIPipeTestCase):
         self._file_system.write('input_dir/file1.isxd', '')
         self._file_system.write('input_dir/file2.isxd', '')
 
+    def _initialize_directory_with_three_plane_videos(self):
+        self._file_system.makedirs("input_dir", exist_ok=True)
+        self._file_system.write("input_dir/file1.1.isxd", "")
+        self._file_system.write("input_dir/file1.2.isxd", "")
+        self._file_system.write("input_dir/file1.3.isxd", "")
+
+    def _initialize_directory_with_three_original_videos(self):
+        self._file_system.makedirs("input_dir", exist_ok=True)
+        self._file_system.write("input_dir/file1.isxd", "")
+        self._file_system.write("input_dir/file2.isxd", "")
+        self._file_system.write("input_dir/file3.isxd", "")
 
 if __name__ == '__main__':
     unittest.main()
