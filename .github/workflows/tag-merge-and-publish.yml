@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    environment: Publish
 
     steps:
       - name: Checkout code
