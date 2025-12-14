@@ -9,19 +9,31 @@ description = "CIPipeline is a tool to analyze and process Calcium Imaging data.
 readme = "README.md"
 requires-python = ">=3.10,<3.11"
 license = { file = "LICENSE" }
+
+keywords = ["calcium-imaging", "neuroscience", "pipeline", "scientific"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: OS Independent",
+]
+
 authors = [
     { name = "Gonzalez Agustín", email = "agngonzalez@fi.uba.ar" },
     { name = "Loyarte Iván", email = "iloyarte@fi.uba.ar" },
     { name = "Rueda Nazarena", email = "nrueda@fi.uba.ar" },
     { name = "Singer Joaquín", email = "josinger@fi.uba.ar" }
 ]
+
 dependencies = [
     "rich>=13.7.0",
     "PyYAML>=6.0"
 ]
 
 [project.urls]
-Homepage = "https://github.com/CGK-Laboratory/ci_pipe"
+Homepage = "https://cipipe.gitbook.io/cipipe-docs"
 Repository = "https://github.com/CGK-Laboratory/ci_pipe"
 
 [tool.setuptools.packages.find]
