@@ -1,67 +1,71 @@
 # CIPipeline / CI_Pipe
 
-### Descripción corta
-CIPipeline (referido en imports como `ci_pipe`) es una biblioteca Python para construir y ejecutar pipelines de procesamiento de imágenes de calcio usada por el Laboratorio CGK. Provee primitivas de pipeline, adaptadores opcionales para Inscopix (`isx`) y CaImAn (`caiman`), utilidades y notebooks de ejemplo.
+## English
 
-### Equipo de desarrollo
+### Short description
+CIPipeline (imported as `ci_pipe`) is a Python library for building and running calcium-imaging processing pipelines used by the CGK Laboratory. It provides core pipeline primitives, optional adapters for Inscopix (`isx`) and CaImAn (`caiman`), utilities, plotters and example Jupyter notebooks.
 
-El equipo está formado por estudiantes de la Facultad de Ingeniería de la UBA en contexto del trabajo final de la carrera de Ingeniería en Informática en conjunto con su tutor. 
+### Development team
+The project was developed as a final-degree project by students from Facultad de Ingeniería, Universidad de Buenos Aires, under the supervision of a tutor, in collaboration with the CGK Laboratory.
 
+Contributors:
 - Gonzalez Agustín
 - Loyarte Iván
 - Rueda Nazarena
 - Singer Joaquín
-- Fernando Chaure - Tutor
+- Fernando Chaure (Tutor)
 
-El trabajo es un trabajo en conjunto con y para el Laboratorio CGK — equipo de neurociencia computacional y microscopía
+### Installation tutorial
 
-### Tutorial de instalación
-
-1) Instalar la librería desde PyPI
+1) Install the library from PyPI
 
 ```bash
 pip install cipipeline
 ```
 
-2) Opcional: Instalar Inscopix `isx` (requerido para el modulo de `isx`)
+2) Optional: Install Inscopix `isx` (required for the `isx` module)
 
-- Repositorio: https://github.com/Inscopix/isx
+- Repository: https://github.com/Inscopix/isx
 - Inscopix: https://www.inscopix.com
 
-Sigue la documentación del repositorio `isx` para detalles de instalación (algunos paquetes pueden requerir credenciales o instaladores específicos del proveedor).
+Follow the `isx` repository documentation for installation details (some Inscopix packages may require credentials or vendor-specific installers).
 
-3) Opcional: Instalar CaImAn (requerido para el modulo de `caiman`)
+3) Optional: Install CaImAn (required for the `caiman` module)
 
-- Proyecto: https://github.com/flatironinstitute/CaImAn
+- Project: https://github.com/flatironinstitute/CaImAn
 - Docs: https://caiman.readthedocs.io
 
-CaImAn recomienda usar conda para una instalación completa.
+CaImAn strongly recommends installing via conda for full functionality; follow the CaImAn docs.
 
-4) Jupyter (recomendado para abrir los notebooks de ejemplo)
+4) Jupyter (recommended for opening example notebooks)
 
 ```bash
 pip install jupyterlab
-# o
+# or
 pip install notebook
 ```
 
-### Enlaces útiles
-- Paquete PyPI: https://pypi.org/project/cipipeline
-- Inscopix / isx: https://github.com/Inscopix/isx y https://www.inscopix.com
-- CaImAn: https://github.com/flatironinstitute/CaImAn y https://caiman.readthedocs.io
-- Guía de inicio de Jupyter: https://jupyter.org/install
+### Useful links
+- PyPI package: https://pypi.org/project/cipipeline
+- Inscopix / isx: https://github.com/Inscopix/isx and https://www.inscopix.com
+- CaImAn: https://github.com/flatironinstitute/CaImAn and https://caiman.readthedocs.io
+- Jupyter starter guide: https://jupyter.org/install
 
-### Página del laboratorio CGK
-- CGK Lab: https://cgk-lab.example  # reemplazar por la URL real del laboratorio
+### CGK Laboratory page
+- CGK Lab: https://cgk-lab.example  # replace with the real lab page URL
 
-### Guía de ejemplos
-Los notebooks de ejemplo están en `docs/examples`. Para ejecutarlos localmente:
+### Example guide
+Example Jupyter notebooks live in `docs/examples`. To run them locally:
 
 ```bash
 git clone <repo>
 cd <repo>
 pip install -e .
-# instalar dependencias opcionales si es necesario (isx, caiman)
+# install optional dependencies if needed (isx, caiman)
 jupyter lab
-# abrir los notebooks en docs/examples
+# open notebooks in docs/examples
 ```
+
+---
+
+Read the Spanish translation in `README.es.md` (or view both sections in the repository).
