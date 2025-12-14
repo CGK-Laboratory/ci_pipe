@@ -6,7 +6,7 @@
 CIPipeline (imported as `ci_pipe`) is a Python library for building and running calcium-imaging processing pipelines used by the CGK Laboratory. It provides core pipeline primitives, optional adapters for Inscopix (`isx`) and CaImAn (`caiman`), utilities, plotters and example Jupyter notebooks.
 
 ### Development team
-The project was developed as a final-degree project by students from Facultad de Ingeniería, Universidad de Buenos Aires, under the supervision of a tutor, in collaboration with the CGK Laboratory.
+The project was developed as a final project by students from Facultad de Ingeniería, Universidad de Buenos Aires, under the supervision of a tutor, in collaboration with the CGK Laboratory.
 
 Contributors:
 - Gonzalez Agustín
