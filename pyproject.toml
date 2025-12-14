@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cipipeline"
-version = "0.1.4"
+version = "0.2.0"
 description = "CIPipeline is a tool to analyze and process Calcium Imaging data."
 readme = "README.md"
 requires-python = ">=3.10,<3.11"
@@ -32,7 +32,7 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.bumpver]
-current_version = "0.1.4"
+current_version = "0.2.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Bump version to {new_version}"
 tag_message = "v{new_version}"
