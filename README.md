@@ -19,20 +19,21 @@ This project was developed as a final project by students from Facultad de Ingen
 pip install cipipeline
 ```
 
-2. Optional: Install Inscopix `isx` (required for the `isx` module)
+2. Install libraries/packages required for specific modules
 
-   Software and installation instructions can be downloaded from the vendor site: https://www.inscopix.com
+   Currently, CIPipeline supports the following optional modules:
    
-   Note: Do not confuse this with the public `isx` library available on PyPI or GitHub. This project requires the proprietary Inscopix software package.
+   - **Inscopix `isx`** (required for the `isx` module): Software and installation instructions can be downloaded from the vendor site: https://www.inscopix.com
+     
+     Note: Do not confuse this with the public `isx` library available on PyPI or GitHub. This project requires the proprietary Inscopix software package.
+   
+   - **CaImAn** (required for the `caiman` module): 
+     - Project: https://github.com/flatironinstitute/CaImAn
+     - Docs: https://caiman.readthedocs.io
+     
+     CaImAn strongly recommends installing via conda for full functionality; follow the CaImAn docs.
 
-3. Optional: Install CaImAn (required for the `caiman` module)
-
-- Project: https://github.com/flatironinstitute/CaImAn
-- Docs: https://caiman.readthedocs.io
-
-CaImAn strongly recommends installing via conda for full functionality; follow the CaImAn docs.
-
-4. Jupyter (recommended for opening example notebooks)
+3. Jupyter (recommended for opening example notebooks)
 
 ```bash
 pip install jupyterlab
