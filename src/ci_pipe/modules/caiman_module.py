@@ -32,7 +32,7 @@ class CaimanModule:
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.MOTION_CORRECTION_STEP)
 
-        for input_data in inputs('videos-tif'):
+        for input_data in inputs('videos-tiff'):
             motion_correct_handler = self._caiman.motion_correction.MotionCorrect(
                 fname=input_data['value'],
                 strides=caiman_strides,
@@ -59,7 +59,7 @@ class CaimanModule:
             memmapped_movie.save(tif_output_path)
             output.append({'ids': input_data['ids'], 'value': tif_output_path})
 
-        return {"videos-tif": output}
+        return {"videos-tiff": output}
 
     @step(CNMF_STEP)
     def cnmf(
@@ -141,7 +141,7 @@ class CaimanModule:
         output = []
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.CNMF_STEP)
 
-        for input_data in inputs('videos-tif'):
+        for input_data in inputs('videos-tiff'):
             cnmf_model = self._caiman.source_extraction.cnmf.CNMF(
                 n_processes=caiman_n_processes,
                 k=caiman_k,

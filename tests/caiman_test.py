@@ -22,7 +22,7 @@ class CaimanTestCase(CIPipeTestCase):
         # Given
         pipeline_input = 'input_dir'
         self._file_system.makedirs(pipeline_input)
-        self._file_system.write(f'{pipeline_input}/file1.tif', '')
+        self._file_system.write(f'{pipeline_input}/file1.tiff', '')
         pipeline = CIPipe.with_videos_from_directory(
             pipeline_input,
             file_system=self._file_system,
@@ -35,7 +35,7 @@ class CaimanTestCase(CIPipeTestCase):
         # Then
         self._assert_output_files(
             pipeline,
-            'videos-tif',
+            'videos-tiff',
             [
                 'output/Main Branch - Step 1 - Caiman Motion Correction/file1-MC.tif',
             ],
@@ -47,7 +47,7 @@ class CaimanTestCase(CIPipeTestCase):
         # Given
         pipeline_input = 'input_dir'
         self._file_system.makedirs(pipeline_input)
-        self._file_system.write(f'{pipeline_input}/file1.tif', '')
+        self._file_system.write(f'{pipeline_input}/file1.tiff', '')
         pipeline = CIPipe.with_videos_from_directory(
             pipeline_input,
             file_system=self._file_system,
@@ -61,7 +61,7 @@ class CaimanTestCase(CIPipeTestCase):
         # Then
         self._assert_output_files(
             pipeline,
-            'videos-tif',
+            'videos-tiff',
             [
                 'output/Main Branch - Step 1 - Caiman Motion Correction/file1-MC.tif',
             ],
