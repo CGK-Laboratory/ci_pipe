@@ -4,11 +4,13 @@ import numpy as np
 
 from ci_pipe.decorators import step
 from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
+from ci_pipe.utils.isx_utils import get_efocus
 from ci_pipe.utils.project_template import load_project_templates
 
 
 class ISXModule:
     # TODO: Consider moving these constants to a different config file
+    DEINTERLEAVE_VIDEOS_STEP = "ISX Deinterleave Videos"
     PREPROCESS_VIDEOS_STEP = "ISX Preprocess Videos"
     BANDPASS_FILTER_VIDEOS_STEP = "ISX Bandpass Filter Videos"
     MOTION_CORRECTION_VIDEOS_STEP = "ISX Motion Correction Videos"
@@ -32,6 +34,7 @@ class ISXModule:
     LONGITUDINAL_REGISTRATION_CORRESPONDENCES_TABLE_NAME = "LR-correspondences-table"
     LONGITUDINAL_REGISTRATION_CROP_RECT_NAME = "LR-crop-rect"
     LONGITUDINAL_REGISTRATION_TRANSFORM_NAME = "LR-transform"
+    DEINTERLEAVE_VIDEOS_SUFFIX = "efocus"
     GUI_VISUALIZATION_STEP = "ISX Gui Visualization"
     GUI_VISUALIZATION_SUFFIX = "GUI"
 
@@ -46,6 +49,52 @@ class ISXModule:
         }
 
     # TODO: Find the best way to remove repetition on these step methods, without losing clarity of what each step does
+
+    @step(DEINTERLEAVE_VIDEOS_STEP)
+    def deinterleave_videos(self, inputs):
+        """
+        De-interleave multiplane movies into one video per focal plane.
+
+        For each input video, resolves e-focus from GPIO or acquisition metadata
+        (checking raw files like .gpio alongside the movie). Produces one output
+        movie per plane; each output keeps the same ids and adds an 'efocus' key.
+        """
+        output = []
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(
+            self.DEINTERLEAVE_VIDEOS_STEP
+        )
+
+        for input in inputs('videos-isxd'):
+            input_path = input['value']
+            ids = input['ids']
+
+            video = self._isx.Movie.read(str(input_path))
+            efocus_list = get_efocus(
+                self._isx, input_path, output_dir, video
+            )
+            del video
+
+            output_paths = [
+                self._isx.make_output_file_path(
+                    input_path,
+                    output_dir,
+                    f"{self.DEINTERLEAVE_VIDEOS_SUFFIX}-{ef}",
+                )
+                for ef in efocus_list
+            ]
+
+            self._isx.de_interleave(
+                input_movie_files=[input_path],
+                output_movie_files=output_paths,
+                in_efocus_values=efocus_list,
+            )
+
+            for ef, path in zip(efocus_list, output_paths):
+                output.append({'ids': ids, 'efocus': ef, 'value': path})
+
+        return {
+            'videos-isxd': output
+        }
 
     @step(PREPROCESS_VIDEOS_STEP)
     def preprocess_videos(
@@ -77,7 +126,10 @@ class ISXModule:
                 trim_early_frames=isx_pp_trim_early_frames
             )
 
-            output.append({'ids': input['ids'], 'value': output_path})
+            item = {'ids': input['ids'], 'value': output_path}
+            if 'efocus' in input:
+                item['efocus'] = input['efocus']
+            output.append(item)
 
         return {
             'videos-isxd': output
@@ -109,7 +161,10 @@ class ISXModule:
                 subtract_global_minimum=isx_bp_subtract_global_minimum
             )
 
-            output.append({'ids': input['ids'], 'value': output_path})
+            item = {'ids': input['ids'], 'value': output_path}
+            if 'efocus' in input:
+                item['efocus'] = input['efocus']
+            output.append(item)
 
         return {
             'videos-isxd': output
@@ -170,7 +225,10 @@ class ISXModule:
                 preserve_input_dimensions=isx_mc_preserve_input_dimensions
             )
 
-            output_videos.append({'ids': input['ids'], 'value': output_video_path})
+            item = {'ids': input['ids'], 'value': output_video_path}
+            if 'efocus' in input:
+                item['efocus'] = input['efocus']
+            output_videos.append(item)
             output_translations.append({'ids': input['ids'], 'value': output_translations_path})
             output_crop_rects.append({'ids': input['ids'], 'value': output_crop_rect_path})
             output_mean_images.append({'ids': input['ids'], 'value': output_mean_image_path})
@@ -202,7 +260,10 @@ class ISXModule:
                 f0_type=isx_dff_f0_type
             )
 
-            output.append({'ids': input['ids'], 'value': output_path})
+            item = {'ids': input['ids'], 'value': output_path}
+            if 'efocus' in input:
+                item['efocus'] = input['efocus']
+            output.append(item)
 
         return {
             'videos-isxd': output
