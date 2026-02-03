@@ -67,11 +67,16 @@ class Plotter:
         self.console.print(f"\n[bold underline]Pipeline Trace of branch: {branch_name}[/bold underline]\n")
         self.console.print(*panels, justify="center")
 
+    def _format_params(self, params):
+        if not params:
+            return "None"
+        return "\n".join(f"  {k}: {v}" for k, v in params.items())
+
     def _build_trace_panels(self, steps):
         panels = [
             Panel(
                 f"[bold]{index}.[/bold] {step.name()}\n"
-                f"Params: {', '.join(step.arguments()) or 'None'}",
+                f"Params:\n{self._format_params(step.arguments())}",
                 padding=(1, 2),
             )
             for index, step in enumerate(steps, start=1)
