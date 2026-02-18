@@ -1,5 +1,10 @@
+from pathlib import Path
+
+import numpy as np
+
 from ci_pipe.decorators import step
 from ci_pipe.errors.isx_backend_not_configured_error import ISXBackendNotConfiguredError
+from ci_pipe.utils.project_template import load_project_templates
 
 
 class ISXModule:
@@ -24,9 +29,11 @@ class ISXModule:
     EXTRACT_NEURONS_PCA_ICA_VIDEOS_SUFFIX = "PCA-ICA"
     DETECT_EVENTS_IN_CELLS_SUFFIX = "ED"
     LONGITUDINAL_REGISTRATION_SUFFIX = "LR"
-    LONGITUDINAL_REGISTRATION_CORRESPONDENCES_TABLE_NAME= "LR-correspondences-table"
-    LONGITUDINAL_REGISTRATION_CROP_RECT_NAME= "LR-crop-rect"
-    LONGITUDINAL_REGISTRATION_TRANSFORM_NAME= "LR-transform"
+    LONGITUDINAL_REGISTRATION_CORRESPONDENCES_TABLE_NAME = "LR-correspondences-table"
+    LONGITUDINAL_REGISTRATION_CROP_RECT_NAME = "LR-crop-rect"
+    LONGITUDINAL_REGISTRATION_TRANSFORM_NAME = "LR-transform"
+    GUI_VISUALIZATION_STEP = "ISX Gui Visualization"
+    GUI_VISUALIZATION_SUFFIX = "GUI"
 
     def __init__(self, isx, ci_pipe):
         if isx is None:
@@ -347,15 +354,15 @@ class ISXModule:
         return {
             'videos-nwb': output
         }
-    
+
     @step(LONGITUDINAL_REGISTRATION_STEP)
     def longitudinal_registration(
-        self,
-        inputs,
-        *,
-        isx_lr_reference_selection_strategy=None,
-        isx_lr_min_correlation=0.5,
-        isx_lr_accepted_cells_only=False
+            self,
+            inputs,
+            *,
+            isx_lr_reference_selection_strategy=None,
+            isx_lr_min_correlation=0.5,
+            isx_lr_accepted_cells_only=False
     ):
         output_videos = []
         output_cellsets = []
@@ -363,12 +370,14 @@ class ISXModule:
         output_video_paths = []
         input_cellset_paths = []
         output_cellset_paths = []
-        
+
         output_dir = self._ci_pipe.create_output_directory_for_next_step(self.LONGITUDINAL_REGISTRATION_STEP)
         all_ids = list(set(id for input in inputs('videos-isxd') for id in input['ids']))
 
-        self._load_outputs_and_paths_from_inputs(inputs('videos-isxd'), output_dir, 'isxd', output_videos, input_video_paths, output_video_paths)
-        self._load_outputs_and_paths_from_inputs(inputs('cellsets-isxd'), output_dir, 'isxd', output_cellsets, input_cellset_paths, output_cellset_paths)
+        self._load_outputs_and_paths_from_inputs(inputs('videos-isxd'), output_dir, 'isxd', output_videos,
+                                                 input_video_paths, output_video_paths)
+        self._load_outputs_and_paths_from_inputs(inputs('cellsets-isxd'), output_dir, 'isxd', output_cellsets,
+                                                 input_cellset_paths, output_cellset_paths)
 
         # TODO: Throw error if strategy name is invalid, consider using enum
         if isx_lr_reference_selection_strategy is not None and isx_lr_reference_selection_strategy in self._lr_reference_selection_strategies:
@@ -397,12 +406,72 @@ class ISXModule:
         return {
             'videos-isxd': output_videos,
             'cellsets-isxd': output_cellsets,
-            'longitudinal-registration-correspondences-table': [{'ids': all_ids, 'value': output_correspondences_table_path}],
+            'longitudinal-registration-correspondences-table': [
+                {'ids': all_ids, 'value': output_correspondences_table_path}],
             'longitudinal-registration-crop-rect': [{'ids': all_ids, 'value': output_crop_rect_path}],
             'longitudinal-registration-transform': [{'ids': all_ids, 'value': output_transform_path}]
         }
 
-    # LR reference selection    
+    # Special Gui Visualizer function
+    @step(GUI_VISUALIZATION_STEP)
+    def create_inscopix_project(self, inputs, *, isx_cellsetname="pca-ica"):
+        file_system = self._ci_pipe.file_system()
+        output_dir = self._ci_pipe.create_output_directory_for_next_step(self.GUI_VISUALIZATION_STEP)
+
+        dff_by_ids = self._group_by_ids(inputs("videos-isxd"))
+        cell_by_ids = self._group_by_ids(inputs("cellsets-isxd"))
+        ev_by_ids = self._group_by_ids(inputs("events-isxd"))
+
+        common_unique_ids = sorted(set(dff_by_ids) & set(cell_by_ids) & set(ev_by_ids))
+        outputs = []
+
+        plane_template, project_template = load_project_templates()
+
+        for ids_key in common_unique_ids:
+            # sort to create stable "plane order"
+            dffs = sorted(dff_by_ids[ids_key])
+            cellsets = sorted(cell_by_ids[ids_key])
+            events = sorted(ev_by_ids[ids_key])
+
+            # pick base name from first dff file
+            base_path = Path(dffs[0]).name
+            original_movie_name = base_path.replace(f"-{self.NORMALIZE_DFF_VIDEOS_SUFFIX}.isxd", "")
+            project_file = file_system.join(output_dir, f"{original_movie_name}-{self.GUI_VISUALIZATION_SUFFIX}.isxp")
+
+            data_folder = project_file[:-5] + "_data"
+            file_system.makedirs(data_folder, exist_ok=True)
+
+            planes = []
+            for dff, cellset, event in zip(dffs, cellsets, events):
+                dmin, dmax = self._movie_first_frame_min_max(dff)
+
+                parsed = plane_template
+                replacements = {
+                    "{eventdet_path}": event.replace("\\", "/"),
+                    "{eventdet_name}": Path(event).name,
+                    "{cellset_path}": cellset.replace("\\", "/"),
+                    "{cellset_name}": Path(cellset).name,
+                    "{DFF_path}": dff.replace("\\", "/"),
+                    "{DFF_name}": Path(dff).name,
+                    "{dmax}": str(dmax),
+                    "{dmin}": str(dmin),
+                }
+                for k, v in replacements.items():
+                    parsed = parsed.replace(k, v)
+
+                planes.append(parsed)
+
+            project_text = project_template.replace(
+                "{prj_name}", Path(project_file).name).replace(
+                "{plane_1ist}", ", ".join(planes)
+            )
+
+            file_system.write(project_file, project_text)
+            outputs.append({"ids": list(ids_key), "value": project_file})
+
+        return {"inscopix-projects": outputs}
+
+    # LR reference selection
 
     def _lr_by_num_cells_desc(self, input_cellsets):
         cell_counts = [self._isx.CellSet.read(path).num_cells for path in input_cellsets]
@@ -413,7 +482,8 @@ class ISXModule:
     def _load_outputs_and_paths_from_inputs(self, inputs, output_dir, ext, outputs, input_paths, output_paths):
         for input in inputs:
             input_paths.append(input['value'])
-            output_path = self._isx.make_output_file_path(input['value'], output_dir, self.LONGITUDINAL_REGISTRATION_SUFFIX, ext=ext)
+            output_path = self._isx.make_output_file_path(input['value'], output_dir,
+                                                          self.LONGITUDINAL_REGISTRATION_SUFFIX, ext=ext)
             outputs.append({'ids': input['ids'], 'value': output_path})
             output_paths.append(output_path)
 
@@ -433,7 +503,8 @@ class ISXModule:
 
         return output_correspondences_table_path, output_crop_rect_path, output_transform_path
 
-    def _apply_lr_reference_selection(self, select_reference_lambda, input_cellsets, output_cellsets, input_movies, output_movies):
+    def _apply_lr_reference_selection(self, select_reference_lambda, input_cellsets, output_cellsets, input_movies,
+                                      output_movies):
         result = self._lr_reference_selection_strategies[select_reference_lambda](input_cellsets)
 
         if all(isinstance(_, int) for _ in result):
@@ -450,3 +521,40 @@ class ISXModule:
             reorder(output_movies),
         )
 
+    def _group_by_ids(self, items):
+        groups = {}
+        for item in items:
+            groups.setdefault(tuple(item["ids"]), []).append(item["value"])
+        return groups
+
+    def _movie_first_frame_min_max(self, movie_path):
+        movie = None
+        try:
+            movie = self._isx.Movie.read(str(movie_path))
+            frame0 = movie.get_frame_data(0)
+            if frame0 is None:
+                raise ValueError(f"Could not read first frame from: {movie_path}")
+
+            arr = np.asarray(frame0)
+            if arr.size == 0:
+                raise ValueError(f"First frame is empty for: {movie_path}")
+
+            dmin = float(np.nanmin(arr))
+            dmax = float(np.nanmax(arr))
+
+            if not np.isfinite(dmin) or not np.isfinite(dmax):
+                raise ValueError(
+                    f"Non-finite min/max from first frame for: {movie_path} (dmin={dmin}, dmax={dmax})"
+                )
+
+            return dmin, dmax
+
+        except ValueError:
+            raise
+        except Exception as e:
+            raise RuntimeError(f"Failed to compute first-frame min/max for {movie_path}: {e}") from e
+        finally:
+            try:
+                del movie
+            except Exception:
+                pass

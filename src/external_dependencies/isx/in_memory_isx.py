@@ -185,3 +185,25 @@ class InMemoryISX:
             self.make_output_file_path(in_file, out_dir, suffix, ext)
             for in_file in in_files
         ]
+
+    @property
+    def Movie(self):
+        file_system = self._file_system
+
+        class Movie:
+            def __init__(self, path):
+                self._path = path
+
+            @staticmethod
+            def read(path):
+                if not file_system.exists(path):
+                    raise IOError(f"Cannot read movie: {path}")
+                return Movie(path)
+
+            def get_frame_data(self, index):
+                return [
+                    [0.0, 1.0],
+                    [2.0, 3.0],
+                ]
+
+        return Movie
