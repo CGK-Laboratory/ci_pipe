@@ -2,6 +2,21 @@ class InMemoryISX:
     def __init__(self, file_system=None):
         self._file_system = file_system
 
+    def deinterleave(
+            self,
+            input_movie_files,
+            output_movie_files,
+            in_efocus_values,
+    ):
+        """
+        De-interleave multiplane movies into one file per plane.
+
+        output_movie_files length must be input_movie_files * len(in_efocus_values).
+        Order: [in_1_plane0, in_1_plane1, ..., in_2_plane0, ...].
+        """
+        for output_file in output_movie_files:
+            self._file_system.write(output_file, "")
+
     def preprocess(
             self,
             input_movie_files,
@@ -205,5 +220,8 @@ class InMemoryISX:
                     [0.0, 1.0],
                     [2.0, 3.0],
                 ]
+
+            def get_acquisition_info(self):
+                return {}
 
         return Movie
